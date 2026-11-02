@@ -1,0 +1,842 @@
+/* 만들어진 파일: design/build-css.mjs가 design/tokens.json과 design/system.css.tpl에서 만든다. 손으로 고치지 않는다. */
+@font-face { font-family: 'Galmuri11'; src: url('../assets/fonts/Galmuri11.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Galmuri11'; src: url('../assets/fonts/Galmuri11-Bold.woff2') format('woff2'); font-weight: 700; font-display: swap; }
+:root, [data-theme="terminal"] { --surface: #06110A; --surface-raised: #0B1E12; --ink: #4BE37A; --ink-muted: #2F9E55; --reading: #D3EAF2; --line: #1E4A2C; --line-strong: #2F9E55; --accent: #4BE37A; --on-accent: #06110A; --housing: #161D19; --housing-edge: #2A332D; --housing-shadow: #0A0E0B; --engraving: #8FA396; --stamp: #FF7A2F; --foundation: #4BE37A; --government: #F5A524; --redact: #D3EAF2; --redact-ink: #0E1A22; --focus: #D3EAF2; --glow: rgba(75, 227, 122, 0.35); --tape: #1B1F1C; --tape-ink: #E8EDE9; --lightbox: #1C2E3A; --owner-ink: #7FA6B5; --government-surface: #0E0B06; --government-muted: #C4861C; --government-reading: #F2E6CF; --scrim: rgba(6, 17, 10, 0.88); --scrim-strong: rgba(0, 0, 0, 0.78); --scrim-mid: rgba(0, 0, 0, 0.55); --scrim-light: rgba(0, 0, 0, 0.12); --scanline: rgba(0, 0, 0, 0.14); --busy-stripe: rgba(75, 227, 122, 0.18); --foundation-wash: rgba(75, 227, 122, 0.04); --redact-hatch: rgba(14, 26, 34, 0.08); --tape-shine: rgba(255, 255, 255, 0.08); --paper-shade: #05080A; --slip-gov: #EFD9A7; --slip-foundation: #CFE2CC; --slip-memo: #BFDFE4; --slip-copy: #EEF0EE; --flag-all: #B3AA98; --flag-gov: #E3AC45; --flag-foundation: #79BC88; --flag-memo: #76BFCC; --status-ok: #4BE37A; --status-warn: #F2D04B; --status-danger: #FF5468; --status-info: #9FD4E8; --status-idle: #8C9A92; --shadow-screen: inset 0 0 0 2px #0A0E0B, inset 0 6px 18px #000000; --shadow-key: 0 3px 0 #0A0E0B; --shadow-paper: 0 2px 0 var(--paper-shade), 0 8px 18px var(--paper-shade); --shadow-drop: 0 10px 24px #000000; --shadow-inset: inset 0 2px 4px #000000; }
+[data-theme="government"] { --surface: #0E0B06; --surface-raised: #17120A; --ink: #F5A524; --ink-muted: #C4861C; --reading: #F2E6CF; --line: #5A3E0E; --line-strong: #C4861C; --accent: #F5A524; --on-accent: #0E0B06; --stamp: #FF7A2F; --foundation: #4BE37A; --government: #F5A524; --redact: #D3EAF2; --redact-ink: #0E1A22; --focus: #F2E6CF; --glow: rgba(245, 165, 36, 0.3); --lightbox: #1C2E3A; --owner-ink: #7FA6B5; --scrim: rgba(14, 11, 6, 0.88); --busy-stripe: rgba(245, 165, 36, 0.2); --foundation-wash: rgba(75, 227, 122, 0.04); --redact-hatch: rgba(14, 26, 34, 0.08); --paper-shade: #05080A; --status-ok: #4BE37A; --status-warn: #F2D04B; --status-danger: #FF5468; --status-info: #9FD4E8; --status-idle: #8C9A92; }
+[data-theme="film"] { --surface: #D9D3C5; --surface-raised: #E7E2D6; --ink: #1E1A15; --ink-muted: #5A5143; --reading: #1E1A15; --line: #B9AF9C; --line-strong: #766B58; --accent: #1E1A15; --on-accent: #E7E2D6; --stamp: #9F3900; --foundation: #10662B; --government: #7D4F06; --redact: #1E1A15; --redact-ink: #E7E2D6; --focus: #9F3900; --glow: rgba(0, 0, 0, 0); --lightbox: #F3EFE6; --owner-ink: #3F5566; --scrim: rgba(231, 226, 214, 0.9); --busy-stripe: rgba(30, 26, 21, 0.12); --foundation-wash: rgba(16, 102, 43, 0.06); --redact-hatch: rgba(231, 226, 214, 0.12); --paper-shade: rgba(30, 26, 21, 0.22); --status-ok: #10662B; --status-warn: #6E5600; --status-danger: #A01F30; --status-info: #1F5A70; --status-idle: #5A5143; }
+:root { --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-6: 24px; --touch: 44px; --radius-0: 0; --radius-key: 3px; --radius-housing: 18px; --shape-octagon: polygon(28% 0, 72% 0, 100% 28%, 100% 72%, 72% 100%, 28% 100%, 0 72%, 0 28%); --shape-chamfer: polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px); --font-pixel: "Galmuri11", "Nanum Gothic Coding", monospace; --font-mono: "Nanum Gothic Coding", "D2Coding", ui-monospace, monospace; --font-body: "Noto Sans KR", "Apple SD Gothic Neo", system-ui, sans-serif; }
+
+/* 계측기 단말 — 부품 스타일 (v3, 원본 한 벌)
+   색·간격·글자는 전부 tokens.css 변수에서 온다. 숫자를 새로 박지 말고 토큰을 쓴다.
+   모양 규칙: 누르는 것(버튼·탭·꼬리표)만 다각형으로 자르고, 정보 칸은 테두리 없이 간격과 가는 줄로 나눈다.
+   다각형 테두리: 바깥 배경(--_bc)과 안쪽 ::before(--_bg)를 같은 다각형으로 잘라서, 비스듬한 변에도 선이 남게 그린다. */
+
+/* ── 0. 바탕과 글자 ── */
+.t-screen { background: var(--surface); color: var(--ink); font-family: var(--font-mono); }
+.t-reading { font-family: var(--font-body); color: var(--reading); font-size: 16px; line-height: 1.7; }
+.t-label { margin: 0; font-family: var(--font-mono); font-size: 12px; font-weight: 400; letter-spacing: .02em; color: var(--ink-muted); }
+.t-muted { color: var(--ink-muted); }
+.t-pixel { font-family: var(--font-pixel); }
+.t-glow { text-shadow: 0 0 4px var(--glow), 0 0 12px var(--glow); }
+.t-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.t-key-hint { font-weight: 700; }
+.t-stack { display: flex; flex-direction: column; gap: var(--space-2); }
+.t-screen :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+@media (max-width: 600px) { .t-key-hint, .t-btn__key { display: none; } }
+
+/* ── 1. 앱 틀: 단말기 본체 안의 화면 ── */
+.t-app { box-sizing: border-box; display: flex; flex-direction: column; background: var(--housing) url('../assets/textures/housing.webp') 0 0 / 256px 256px; }
+.t-app__plate { height: 30px; display: flex; align-items: center; gap: var(--space-3); padding: 0 var(--space-4); font-family: var(--font-pixel); font-size: 12px; letter-spacing: .14em; color: var(--engraving); }
+.t-app__screen { position: relative; flex-grow: 1; min-height: 0; margin: 0 6px; display: flex; flex-direction: column; background: var(--surface); box-shadow: var(--shadow-screen); overflow: hidden; border-radius: 4px; }
+.t-app__screen::before { content: ""; position: absolute; inset: 0; z-index: 5; pointer-events: none; background: url('../assets/textures/screen-glass.png') center / 100% 100% no-repeat; }
+.t-app__screen::after { content: ""; position: absolute; inset: 0; z-index: 5; pointer-events: none; background: repeating-linear-gradient(to bottom, transparent 0 2px, var(--scanline) 2px 3px); }
+.t-app__screen > *:not(.t-sr) { position: relative; z-index: 6; }
+.t-scroll { flex-grow: 1; min-height: 0; overflow-y: auto; }
+.t-scroll > * { flex-shrink: 0; }
+.t-bezel__power { width: 7px; height: 7px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 6px var(--glow), 0 0 0 2px var(--housing-shadow); }
+.t-bezel__vent { flex-grow: 1; height: 8px; border-radius: 2px; background: repeating-linear-gradient(90deg, var(--housing-shadow) 0 3px, transparent 3px 7px); }
+.t-bezel__led { display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; vertical-align: middle; background: var(--ink); box-shadow: 0 0 6px var(--glow); }
+/* 데스크톱 본체: 넓은 화면에서 앱 전체를 감싸는 둥근 기계 */
+.t-bezel { position: relative; padding: 34px 14px 16px; border-radius: var(--radius-housing); background: var(--housing) url('../assets/textures/housing.webp') 0 0 / 256px 256px; box-shadow: inset 0 1px 0 var(--housing-edge), inset 0 -3px 0 var(--housing-shadow), var(--shadow-drop); }
+.t-bezel__screw { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, var(--engraving), var(--housing-edge) 60%); box-shadow: 0 0 0 1px var(--housing-shadow); }
+.t-bezel__screw--tl { top: 10px; left: 11px; } .t-bezel__screw--tr { top: 10px; right: 11px; } .t-bezel__screw--bl { bottom: 10px; left: 11px; } .t-bezel__screw--br { bottom: 10px; right: 11px; }
+@media (max-width: 600px) { .t-bezel { border-radius: 0; padding: 30px 6px 6px; } .t-bezel__screw--bl, .t-bezel__screw--br { display: none; } }
+
+/* ── 2. 화면 선택 줄 ── */
+.t-navbar { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 0 6px 2px; background: var(--surface); border-top: 1px solid var(--line); }
+.t-navbar__item { position: relative; min-height: 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--ink-muted); text-decoration: none; font-family: var(--font-mono); }
+.t-navbar__label { font-size: 12px; letter-spacing: .04em; }
+.t-navbar__dot { position: absolute; top: 9px; right: calc(50% - 15px); width: 6px; height: 6px; border-radius: 50%; }
+.t-navbar__item--lit .t-navbar__dot { background: var(--accent); }
+.t-navbar__item:hover { color: var(--ink); }
+.t-navbar__item[aria-current="page"] { color: var(--ink); }
+.t-navbar__item[aria-current="page"] .t-navbar__label { font-weight: 700; }
+.t-navbar__item[aria-current="page"]::before { content: ""; position: absolute; top: -1px; left: 22%; right: 22%; height: 2px; background: var(--accent); box-shadow: 0 0 8px var(--glow); }
+.t-navbar__item:focus-visible { outline: 2px solid var(--focus); outline-offset: -4px; }
+.t-navbar__item .t-px .px-a { fill: currentColor; }
+
+/* ── 2-1. 데스크톱: 왼쪽 메뉴 + 본문 칸 + 맨 아래 상태 막대 ── */
+.t-desktop { display: grid; grid-template-columns: 288px minmax(0, 1fr) 360px; flex-grow: 1; min-height: 0; }
+.t-desktop > * { min-width: 0; min-height: 0; }
+.t-sidebar { display: flex; flex-direction: column; border-right: 1px solid var(--line); }
+.t-sidebar__clock { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-4) var(--space-3); }
+.t-pane { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-4) var(--space-6); overflow-y: auto; }
+.t-pane > * { flex-shrink: 0; }
+.t-pane--side { padding: var(--space-4); border-left: 1px solid var(--line); }
+.t-sidenav { display: flex; flex-direction: column; padding: var(--space-2) 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.t-sidenav__item { position: relative; display: grid; grid-template-columns: 26px 20px 1fr auto; align-items: center; gap: var(--space-2); min-height: 46px; padding: 0 var(--space-4); color: var(--ink-muted); font-size: 15px; text-decoration: none; }
+.t-sidenav__key { font-family: var(--font-pixel); font-size: 12px; color: var(--ink-muted); }
+.t-sidenav__count { font-family: var(--font-pixel); font-size: 12px; color: var(--accent); }
+.t-sidenav__item:hover { color: var(--ink); background: var(--surface-raised); }
+.t-sidenav__item[aria-current="page"] { color: var(--ink); font-weight: 700; background: var(--surface-raised); }
+.t-sidenav__item[aria-current="page"]::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; background: var(--accent); box-shadow: 0 0 8px var(--glow); }
+.t-sidenav__item:focus-visible { outline: 2px solid var(--focus); outline-offset: -3px; }
+.t-sidenav__item .t-px .px-a { fill: currentColor; }
+.t-statusbar { display: flex; align-items: stretch; height: 32px; border-top: 1px solid var(--line); background: var(--surface); font-family: var(--font-mono); font-size: 12px; color: var(--ink-muted); }
+.t-statusbar > * { display: flex; align-items: center; gap: 6px; padding: 0 var(--space-3); border-right: 1px solid var(--line); white-space: nowrap; }
+.t-statusbar__keys { margin-left: auto; border-right: none; border-left: 1px solid var(--line); gap: var(--space-3); }
+.t-statusbar__keys b { color: var(--ink); font-weight: 400; }
+.t-statusbar__now { color: var(--ink); }
+/* 데스크톱 본체는 화면을 꽉 채우는 둥근 기계. 상태 막대는 화면 안 맨 아래 */
+.t-app--desktop { padding: 0 10px 10px; border-radius: var(--radius-housing); }
+.t-app--desktop .t-app__plate { height: 34px; }
+@media (max-width: 1180px) { .t-desktop { grid-template-columns: 260px minmax(0, 1fr) 300px; } .t-pane { padding: var(--space-4); } }
+@media (max-width: 760px) { .t-desktop { display: block; overflow-y: auto; } .t-sidebar, .t-statusbar { display: none; } }
+
+/* ── 3. 다각형 바탕 (누르는 것) ── */
+.t-btn, .t-tab, .t-tag { position: relative; isolation: isolate; border: none; background: var(--_bc); clip-path: var(--_shape); --_bw: 1px; }
+.t-btn::before, .t-tab::before, .t-tag::before { content: ""; position: absolute; inset: var(--_bw); z-index: -1; background: var(--_bg); clip-path: var(--_shape); pointer-events: none; }
+
+/* ── 4. 버튼: 변형 6가지, 상태 6가지 ── */
+.t-btn { --_bc: currentColor; --_bg: var(--surface); --_cut: 6px;
+  --_shape: polygon(var(--_cut) 0, 100% 0, 100% calc(100% - var(--_cut)), calc(100% - var(--_cut)) 100%, 0 100%, 0 var(--_cut));
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--touch); padding: 0 var(--space-3);
+  color: var(--ink); font-family: var(--font-mono); font-size: 14px; text-decoration: none; cursor: pointer; box-sizing: border-box; }
+.t-btn--outline { --_bc: var(--line-strong); }
+.t-btn--primary { --_bc: var(--accent); --_bg: var(--accent); --_cut: 14px; min-height: 56px; padding: 0 24px; color: var(--on-accent); font-size: 16px; font-weight: 700; }
+.t-btn--solid { --_bc: var(--accent); --_bg: var(--accent); color: var(--on-accent); font-weight: 700; white-space: nowrap; }
+.t-btn--ghost { --_bc: transparent; --_bg: transparent; clip-path: none; color: var(--ink-muted); text-decoration: underline; }
+.t-btn--row { --_bc: var(--line-strong); justify-content: space-between; width: 100%; padding: 0 24px 0 var(--space-3); font-family: var(--font-pixel); font-size: 13px; letter-spacing: .06em; text-align: left;
+  --_shape: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%); }
+.t-btn__count { font-size: 13px; }
+.t-btn--row[aria-checked="true"], .t-btn--row[aria-current="true"] { --_bc: var(--reading); --_bg: var(--reading); color: var(--on-accent); font-weight: 700; }
+.t-btn--choice { --_bc: var(--line-strong); --_cut: 10px; flex-direction: column; align-items: stretch; gap: 6px; width: 100%; min-height: 72px; padding: 10px 14px; text-align: left; }
+.t-btn--choice[aria-checked="true"] { --_bc: var(--accent); --_bw: 2px; --_bg: var(--surface-raised); }
+.t-btn__key { font-family: var(--font-pixel); font-size: 12px; padding: 1px 4px; border: 1px solid currentColor; }
+/* 상태 */
+.t-btn:hover { --_bc: var(--ink); }
+.t-btn--primary:hover, .t-btn--solid:hover { --_bc: var(--reading); }
+.t-btn--ghost:hover { color: var(--ink); }
+.t-btn--row[aria-checked="true"]:hover { --_bc: var(--ink); }
+.t-btn:active { transform: translateY(2px); }
+.t-btn:focus-visible { outline: none; --_bc: var(--focus); --_bw: 2px; }
+.t-btn:disabled, .t-btn[aria-disabled="true"] { cursor: not-allowed; opacity: .45; transform: none; }
+.t-btn:disabled:hover, .t-btn[aria-disabled="true"]:hover { --_bc: var(--line-strong); }
+/* 진행 중: 서버를 기다리는 동안. 눌린 즉시(0.4초 안에) 이 상태로 바꾸고 글자를 "기록 중…"처럼 바꾼다 */
+.t-btn[aria-busy="true"] { cursor: progress; }
+.t-btn[aria-busy="true"]::before { background: repeating-linear-gradient(-45deg, transparent 0 8px, var(--busy-stripe) 8px 16px), var(--surface); background-size: 200% 100%; animation: t-busy 1.2s linear infinite; }
+@keyframes t-busy { to { background-position: -45px 0; } }
+/* 오류: 실패를 알리고 다시 시도하게 한다 (잃는 것은 없다) */
+.t-btn--error, .t-btn[data-state="error"] { --_bc: var(--stamp); }
+
+/* ── 5. 탭: 기울어진 평행사변형 ── */
+.t-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: var(--space-1); }
+.t-tab { --_bc: var(--line-strong); --_bg: var(--surface); --_shape: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  min-height: var(--touch); display: flex; align-items: center; justify-content: center; color: var(--ink); font-family: var(--font-pixel); font-size: 13px; letter-spacing: .12em; text-decoration: none; cursor: pointer; }
+.t-tab:hover { --_bc: var(--ink); }
+.t-tab[aria-selected="true"], .t-tab[aria-checked="true"], .t-tab[aria-pressed="true"] { --_bc: var(--accent); --_bg: var(--accent); color: var(--on-accent); font-weight: 700; }
+.t-tab:focus-visible { outline: none; --_bc: var(--focus); --_bw: 2px; }
+.t-tab:disabled, .t-tab[aria-disabled="true"] { opacity: .45; cursor: not-allowed; }
+
+/* ── 6. 꼬리표: 양끝이 뾰족한 육각 ── */
+.t-tag { --_bc: var(--line-strong); --_bg: var(--surface); --_shape: polygon(6px 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0 50%);
+  display: inline-flex; align-items: center; gap: var(--space-1); padding: 1px 9px; white-space: nowrap; color: var(--ink); font-family: var(--font-mono); font-size: 12px; text-decoration: none; }
+.t-tag--solid { --_bc: var(--accent); --_bg: var(--accent); color: var(--on-accent); }
+.t-tag--gov { --_bc: var(--government); --_bg: var(--government-surface); color: var(--government); }
+.t-tag--owner { --_bc: var(--ink-muted); }
+.t-tag--on-photo { --_bg: var(--scrim); }
+a.t-tag:hover, button.t-tag:hover { --_bc: var(--ink); }
+.t-tag:focus-visible { outline: none; --_bc: var(--focus); --_bw: 2px; }
+
+/* ── 7. 정보 묶음 · 강조 ── */
+.t-section { display: flex; flex-direction: column; gap: 6px; }
+.t-section__meta { display: flex; justify-content: space-between; gap: var(--space-2); font-size: 12px; color: var(--ink-muted); }
+.t-section__tags { display: flex; justify-content: flex-end; gap: 6px; flex-wrap: wrap; }
+.t-sep { margin: 0; border: none; border-top: 1px solid var(--line); }
+/* 지금 할 일 띠: 한 화면에 하나 */
+.t-alert { display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 6px 14px; background: var(--accent); color: var(--on-accent); text-decoration: none; clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%); }
+.t-alert:hover { background: var(--reading); }
+.t-alert:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.t-alert .t-px .px-a, .t-alert .t-px .px-b, .t-alert .t-px .px-c { fill: var(--on-accent); } .t-alert .t-px .px-b { opacity: .55; } .t-alert .t-px .px-c { opacity: .3; }
+/* 강조 카드: 대각선 두 귀퉁이를 딴 꽉 찬 한 장 */
+.t-card { padding: var(--space-3); background: var(--accent); color: var(--on-accent); clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px)); }
+.t-card .t-label, .t-card .t-muted { color: var(--on-accent); opacity: .85; }
+
+/* ── 8. 대화 ── */
+.t-chat { list-style: none; margin: 0; padding: 4px 14px 12px; display: flex; flex-direction: column; }
+.t-chat__msg { display: grid; grid-template-columns: 44px 1fr; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); text-decoration: none; }
+.t-chat__msg:last-child { border-bottom: none; }
+.t-chat__face { width: 44px; height: 44px; object-fit: cover; background: var(--surface-raised); clip-path: var(--shape-octagon); }
+.t-chat__head { display: flex; align-items: baseline; gap: var(--space-2); font-size: 13px; }
+.t-chat__name { color: var(--ink); font-weight: 700; }
+.t-chat__time { margin-left: auto; font-size: 12px; color: var(--ink-muted); }
+.t-chat__text { margin: 3px 0 0; font-family: var(--font-body); font-size: 15px; line-height: 1.6; color: var(--reading); }
+.t-chat__msg--owner .t-chat__text { color: var(--owner-ink); }
+.t-chat__msg--me { position: relative; }
+.t-chat__msg--me .t-chat__name { color: var(--accent); }
+.t-chat__msg--me::before { content: ""; position: absolute; left: -14px; top: 10px; bottom: 10px; width: 3px; background: var(--accent); }
+.t-chat__sys { padding: var(--space-2) 0; text-align: center; font-size: 12px; color: var(--ink-muted); border-bottom: 1px solid var(--line); }
+a.t-chat__msg:hover .t-chat__name { text-decoration: underline; }
+.t-faces { display: flex; align-items: center; }
+.t-faces img { width: 30px; height: 30px; margin-right: -6px; object-fit: cover; background: var(--surface-raised); clip-path: var(--shape-octagon); }
+.t-faces span { margin-left: 12px; font-size: 12px; color: var(--ink); }
+.t-avatar { width: 40px; height: 40px; flex-shrink: 0; background-color: var(--surface-raised); clip-path: var(--shape-octagon); }
+
+/* ── 9. 입력 ── */
+.t-input { min-height: 48px; box-sizing: border-box; padding: 0 var(--space-3); background: var(--surface-raised); border: 1px solid var(--line-strong); color: var(--reading); font-family: var(--font-body); font-size: 16px; }
+.t-input::placeholder { color: var(--ink-muted); }
+.t-input:hover { border-color: var(--ink); }
+.t-input:focus-visible { outline: 2px solid var(--focus); outline-offset: 0; }
+.t-input[aria-invalid="true"] { border-color: var(--stamp); }
+.t-field__error { display: flex; align-items: center; gap: var(--space-1); font-size: 13px; color: var(--stamp); }
+.t-input:disabled { opacity: .45; cursor: not-allowed; }
+/* 스위치: 본체에 박힌 픽셀 토글. 위험한 선택은 안전 덮개(--guard)를 젖혀야 켜진다 */
+.t-switch { display: inline-flex; align-items: center; gap: var(--space-3); min-height: var(--touch); padding: var(--space-1) var(--space-2) var(--space-1) var(--space-1); background: none; border: 1px solid transparent; color: var(--ink); font-family: var(--font-mono); font-size: 14px; text-align: left; cursor: pointer; }
+.t-switch__unit { position: relative; width: 96px; height: 60px; flex-shrink: 0; filter: drop-shadow(var(--shadow-key)); }
+.t-switch__px { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+.t-switch__px--on, .t-switch[aria-checked="true"] .t-switch__px--off { display: none; }
+.t-switch[aria-checked="true"] .t-switch__px--on { display: block; }
+/* 켜는 순간: 덮개를 젖히고 레버가 가운데를 지나 올라가는 사이 장면을 한 번(0.16초) 끼운다 */
+.t-switch__px--mid { display: none; }
+.t-switch[aria-checked="true"] .t-switch__px--mid { display: block; animation: t-mid .16s steps(1) forwards; }
+@keyframes t-mid { 0% { opacity: 1; } 100% { opacity: 0; } }
+.t-switch__px .s1 { fill: var(--housing); } .t-switch__px .s2 { fill: var(--housing-shadow); } .t-switch__px .s3 { fill: var(--housing-edge); }
+.t-switch__px .s4, .t-switch__px .s5 { fill: var(--engraving); } .t-switch__px .s6 { fill: var(--reading); }
+.t-switch__px .s7 { fill: var(--line); } .t-switch__px .s8 { fill: var(--accent); }
+.t-switch__px .s9 { fill: var(--stamp); } .t-switch__px .s10 { fill: var(--housing-shadow); }
+[data-theme="government"] .t-switch__px .s9 { fill: var(--accent); }
+.t-switch[aria-checked="true"] .t-switch__unit { filter: drop-shadow(var(--shadow-key)) drop-shadow(0 0 6px var(--glow)); }
+.t-switch__text { display: flex; flex-direction: column; gap: 2px; line-height: 1.35; }
+.t-switch__state { font-family: var(--font-pixel); font-size: 12px; letter-spacing: .02em; color: var(--ink-muted); }
+.t-switch[aria-checked="true"] .t-switch__state { color: var(--ink); }
+.t-switch__note { font-size: 12px; color: var(--ink-muted); }
+/* 덮개 달린 스위치의 뜻은 그림이 아니라 글로 말한다: 무엇을 감수하는 선택인지 */
+.t-switch__risk { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--stamp); }
+.t-switch__risk .t-px .px-a, .t-switch__risk .t-px .px-b { fill: currentColor; }
+.t-switch:hover { border-color: var(--line); }
+.t-switch:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.t-switch:disabled { opacity: .45; cursor: not-allowed; }
+
+/* ── 10. 사진 배너 · 감시 화면 카드 ── */
+.t-banner { position: relative; height: 160px; overflow: hidden; border-bottom: 1px solid var(--line-strong); }
+.t-banner > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.t-banner::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, var(--surface) 6%, var(--scrim-mid) 52%, var(--scrim-light)); }
+.t-banner__text { position: absolute; left: var(--space-4); right: var(--space-4); bottom: 10px; z-index: 1; display: flex; flex-direction: column; gap: var(--space-1); }
+.t-banner__corner { position: absolute; top: var(--space-2); z-index: 1; font-family: var(--font-pixel); font-size: 12px; color: var(--reading); }
+.t-feedcard { position: relative; display: block; overflow: hidden; border: 1px solid var(--line); color: var(--ink); text-decoration: none; }
+.t-feedcard > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.t-feedcard::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, var(--scrim) 34%, var(--scrim-mid) 66%, var(--scrim-light)); }
+.t-feedcard__body { position: absolute; left: 10px; right: 10px; bottom: var(--space-2); z-index: 1; display: flex; flex-direction: column; gap: 3px; }
+.t-feedcard__body--bar { left: 0; right: 0; bottom: 0; padding: 6px 10px var(--space-2); background: var(--surface); }
+.t-feedcard:hover { border-color: var(--ink); }
+.t-feed__rec, .t-feed__time { position: absolute; z-index: 1; padding: 1px 5px; background: var(--scrim-strong); font-family: var(--font-pixel); font-size: 12px; color: var(--reading); }
+.t-feed__rec { top: 6px; left: var(--space-2); display: flex; align-items: center; gap: 5px; }
+.t-feed__rec::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--stamp); animation: t-rec 1s steps(1) infinite; }
+/* 녹화 중: 빨간 점이 1초에 한 번 깜빡이고(초당 3회 이하), 초가 흐르고, 화면 위로 주사 띠가 지나간다 */
+@keyframes t-rec { 50% { opacity: .2; } }
+@property --sec { syntax: '<integer>'; inherits: false; initial-value: 0; }
+.t-feed__sec { --sec: 0; counter-reset: sec var(--sec); animation: t-sec 60s steps(60) infinite; animation-delay: calc(var(--s0, 0) * -1s); }
+.t-feed__sec::after { content: counter(sec, decimal-leading-zero); }
+@keyframes t-sec { to { --sec: 60; } }
+.t-banner::before { content: ""; position: absolute; left: 0; right: 0; top: -30%; height: 30%; z-index: 1; pointer-events: none; background: linear-gradient(to bottom, transparent, var(--scrim-light) 40%, var(--tape-shine) 50%, transparent); animation: t-scan 7s linear infinite; }
+@keyframes t-scan { to { transform: translateY(440%); } }
+.t-feed__time { top: 6px; right: var(--space-2); }
+.t-banner__corner .t-feed__rec { position: static; }
+
+/* ── 11. 계기 ── */
+.t-vital { display: flex; align-items: center; gap: 10px; padding: var(--space-1) var(--space-3); background-color: var(--surface); background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 8px 8px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.t-vital .t-label { white-space: nowrap; }
+.t-vital svg { flex-grow: 1; height: 26px; }
+.t-vital__wave { fill: none; stroke: var(--ink); stroke-width: 1.6; filter: drop-shadow(0 0 3px var(--glow)); }
+.t-vital__bpm { display: flex; align-items: center; gap: 5px; padding: 0 var(--space-1); background: var(--surface); font-family: var(--font-pixel); font-size: 12px; color: var(--ink); white-space: nowrap; }
+/* 살아 있는 심전도: 한 박자(100단위) 무늬를 옆으로 흘리고, 박자에 맞춰 점이 뛰고 숫자가 조금씩 바뀐다 */
+.t-vital { --beat: .84s; --bpm-a: 68; --bpm-b: 76; }
+.t-vital--tense { --beat: .56s; --bpm-a: 102; --bpm-b: 114; }
+.t-vital svg { -webkit-mask: linear-gradient(90deg, transparent, #000 18%, #000 88%, transparent); mask: linear-gradient(90deg, transparent, #000 18%, #000 88%, transparent); }
+.t-vital__track { animation: t-ecg var(--beat) linear infinite; }
+@keyframes t-ecg { to { transform: translateX(-100px); } }
+.t-vital__beat { width: 6px; height: 6px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 6px var(--glow); animation: t-beat var(--beat) ease-out infinite; }
+@keyframes t-beat { 0%, 40% { opacity: .3; transform: scale(.7); } 48% { opacity: 1; transform: scale(1.15); } 100% { opacity: .3; transform: scale(.7); } }
+@property --bpm { syntax: '<integer>'; inherits: false; initial-value: 72; }
+.t-vital__num { --bpm: var(--bpm-a); counter-reset: bpm var(--bpm); animation: t-bpm 9s ease-in-out infinite alternate; }
+.t-vital__num::after { content: counter(bpm); }
+@keyframes t-bpm { 0% { --bpm: var(--bpm-a); } 35% { --bpm: var(--bpm-b); } 60% { --bpm: calc((var(--bpm-a) + var(--bpm-b)) / 2); } 100% { --bpm: var(--bpm-b); } }
+.t-dial { width: 64px; height: 64px; flex-shrink: 0; }
+.t-dial__face { fill: var(--surface-raised); stroke: var(--line-strong); stroke-width: 1.5; }
+.t-dial__tick { stroke: var(--ink-muted); stroke-width: 1.5; }
+.t-dial__hand { stroke: var(--ink); stroke-width: 2; stroke-linecap: round; }
+.t-dial__hand--min { stroke-width: 1.5; }
+.t-gauge { display: flex; flex-direction: column; gap: 5px; font-family: var(--font-mono); }
+.t-gauge__row { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); font-size: 13px; }
+.t-gauge__value { font-family: var(--font-pixel); font-size: 15px; color: var(--ink); }
+.t-gauge__cells { display: grid; grid-template-columns: repeat(20, 1fr); gap: 2px; height: 12px; padding: 2px; background: var(--housing-shadow); border: 1px solid var(--line); }
+.t-gauge__cell { background: var(--line); }
+.t-gauge__cell--on { background: var(--ink); box-shadow: 0 0 4px var(--glow); }
+.t-gauge__cell--warn { background: var(--stamp); }
+.t-gauge__ticks { display: flex; justify-content: space-between; font-family: var(--font-pixel); font-size: 12px; color: var(--ink-muted); }
+.t-gauge__state { display: flex; align-items: center; gap: var(--space-1); font-size: 12px; color: var(--ink-muted); }
+.t-readout, .t-valbox, .t-map, .t-intel { position: relative; isolation: isolate; background: var(--_bc); clip-path: var(--shape-chamfer); }
+.t-readout::before, .t-valbox::before, .t-map::before, .t-intel::before { content: ""; position: absolute; inset: 1px; z-index: -1; background: var(--_bg); clip-path: var(--shape-chamfer); }
+.t-readout { --_bc: var(--line-strong); --_bg: radial-gradient(ellipse at 30% 20%, var(--surface-raised), var(--surface)); display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4); }
+.t-readout__num { font-family: var(--font-pixel); font-size: 64px; line-height: 1; font-weight: 700; color: var(--ink); text-shadow: 0 0 10px var(--glow); }
+.t-readout__of { font-family: var(--font-pixel); font-size: 24px; color: var(--ink-muted); }
+/* 판정 수신기: 라디오 주파수를 맞추듯, 바늘이 움직이는 동안은 잡음 속에서 글자가 흔들리다가 바늘이 멈추면 신호가 잡혀 또렷해진다.
+   왼쪽 막대 다섯 칸이 신호 세기(극단적 성공 5, 어려운 성공 4, 성공 3, 실패 1) */
+.t-readout__verdict { --_lv: 3; position: relative; align-self: center; margin-left: auto; display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 10px; border: 1px solid var(--line-strong); border-radius: 999px; background: radial-gradient(ellipse at 50% 0%, var(--surface-raised), var(--surface)); box-shadow: inset 0 1px 4px var(--scrim-mid); color: var(--accent); font-family: var(--font-pixel); font-size: 18px; font-weight: 700; letter-spacing: .12em; line-height: 1; white-space: nowrap; overflow: hidden; }
+.t-readout__verdict--extreme { --_lv: 5; } .t-readout__verdict--hard { --_lv: 4; } .t-readout__verdict--fail { --_lv: 1; color: var(--ink-muted); }
+.t-tune__bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 16px; }
+.t-tune__bars i { width: 3px; background: var(--line); }
+.t-tune__bars i:nth-child(1) { height: 4px; } .t-tune__bars i:nth-child(2) { height: 7px; } .t-tune__bars i:nth-child(3) { height: 10px; } .t-tune__bars i:nth-child(4) { height: 13px; } .t-tune__bars i:nth-child(5) { height: 16px; }
+.t-tune__bars i:nth-child(-n+1) { background: currentColor; }
+.t-readout__verdict:not(.t-readout__verdict--fail) .t-tune__bars i:nth-child(-n+3) { background: currentColor; }
+.t-readout__verdict--hard .t-tune__bars i:nth-child(-n+4), .t-readout__verdict--extreme .t-tune__bars i { background: currentColor; }
+.t-tune__text { position: relative; display: inline-block; text-shadow: 0 0 6px var(--glow); }
+/* 잡음: 글자 위로 흐르는 가는 가로줄. 신호가 잡히면 걷힌다 */
+.t-readout__verdict::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(to bottom, var(--scrim-mid) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, transparent 0 7px, var(--glow) 7px 8px); opacity: 0; }
+.t-roll-verdict .t-tune__text { animation: t-tune .9s steps(9) both, t-lock .3s .9s ease-out both; }
+.t-roll-verdict .t-tune__bars i { animation: t-static .9s steps(6) both; }
+.t-roll-verdict::after { animation: t-noise .9s steps(6) both, t-clear .3s .9s ease-out both; }
+@keyframes t-tune { 0% { opacity: .25; transform: translateX(-7px); filter: blur(2.5px); } 22% { transform: translateX(5px); } 44% { opacity: .45; transform: translateX(-4px); } 66% { transform: translateX(3px); filter: blur(1.5px); } 88% { opacity: .6; transform: translateX(-1px); } 100% { opacity: .6; transform: none; filter: blur(1px); } }
+@keyframes t-lock { from { opacity: .6; filter: blur(1px); } to { opacity: 1; filter: none; } }
+@keyframes t-static { 0%, 100% { opacity: 1; } 17% { opacity: .3; } 50% { opacity: .7; } 83% { opacity: .2; } }
+@keyframes t-noise { 0% { opacity: .9; background-position: 0 0, 0 0; } 100% { opacity: .9; background-position: 0 6px, 16px 0; } }
+@keyframes t-clear { from { opacity: .9; } to { opacity: 0; } }
+.t-scale { position: relative; height: 26px; }
+/* 판정 굴림: 도박 기계처럼 숫자를 섞지 않고, 계기 바늘이 값을 재러 가서 한 번 넘쳤다 되돌아와 멈춘다. 숫자는 바늘 자리를 그대로 읽는다 */
+@property --r { syntax: '<integer>'; inherits: true; initial-value: 0; }
+.t-readout--roll { --r: var(--roll); animation: t-measure .9s linear both; }
+@keyframes t-measure {
+  0% { --r: 0; animation-timing-function: cubic-bezier(.3, .7, .4, 1); }
+  52% { --r: min(100, calc(var(--roll) + 8)); animation-timing-function: ease-in-out; }
+  72% { --r: max(1, calc(var(--roll) - 3)); animation-timing-function: ease-in-out; }
+  86% { --r: min(100, calc(var(--roll) + 1)); animation-timing-function: ease-out; }
+  100% { --r: var(--roll); }
+}
+.t-roll { display: inline-block; min-width: 1.25em; counter-reset: r var(--r); }
+.t-roll::after { content: counter(r, decimal-leading-zero); }
+.t-roll-needle { left: calc(var(--r) * 1%); }
+/* 대성공(01)과 대실패(대실패 범위): 신호가 잡히는 순간 뒤에 한 번 더 붙는 연출. 둘 다 잃는 것은 없다 */
+.t-readout__quip { margin: 0; font-family: var(--font-body); font-size: 14px; color: var(--reading); animation: t-quip .3s 1.1s ease-out both; }
+@keyframes t-quip { from { opacity: 0; transform: translateY(4px); } }
+/* 대성공: 잡음 하나 없는 맑은 신호. 막대 다섯 칸이 차례로 차오르고, 깨끗한 사인파가 눈금 위를 한 번 그리고, 화면에 빛이 한 번 지나간다 */
+.t-readout--crit .t-readout__num { color: var(--reading); }
+.t-readout--crit .t-roll-verdict { border-color: var(--accent); box-shadow: inset 0 1px 4px var(--scrim-mid), 0 0 12px var(--glow); }
+.t-readout--crit .t-tune__bars i { background: currentColor; }
+.t-readout--crit .t-roll-verdict .t-tune__bars i { animation: t-static .9s steps(6) both, t-barup .14s ease-out both; }
+.t-readout--crit .t-tune__bars i:nth-child(1) { animation-delay: 0s, .9s; } .t-readout--crit .t-tune__bars i:nth-child(2) { animation-delay: 0s, .96s; } .t-readout--crit .t-tune__bars i:nth-child(3) { animation-delay: 0s, 1.02s; } .t-readout--crit .t-tune__bars i:nth-child(4) { animation-delay: 0s, 1.08s; } .t-readout--crit .t-tune__bars i:nth-child(5) { animation-delay: 0s, 1.14s; }
+@keyframes t-barup { from { transform: scaleY(.2); opacity: .3; } }
+.t-crit-wave { position: absolute; left: 0; right: 0; top: -14px; width: 100%; height: 36px; overflow: visible; pointer-events: none; }
+.t-crit-wave path { fill: none; stroke: var(--reading); stroke-width: 1.5; stroke-dasharray: 1; stroke-dashoffset: 1; filter: drop-shadow(0 0 3px var(--glow)); animation: t-draw .5s .95s ease-out forwards, t-fade .6s 1.6s ease-in forwards; }
+@keyframes t-draw { to { stroke-dashoffset: 0; } }
+@keyframes t-fade { to { opacity: .35; } }
+.t-readout__flash { position: absolute; inset: 0; z-index: 0; pointer-events: none; background: linear-gradient(100deg, transparent 30%, var(--glow) 50%, transparent 70%); transform: translateX(-100%); animation: t-sweep .7s .9s ease-out both; }
+@keyframes t-sweep { to { transform: translateX(100%); } }
+/* 대실패: 신호를 놓친다. 바늘이 끝(100)에 부딪혀 튀고, 화면이 한 번 덜컹하고, 잡음이 걷히지 않은 채 막대가 비고, 우스운 문구가 붙는다 */
+.t-readout--fumble { animation: t-measure .9s linear both, t-shake .32s .9s steps(4) both; }
+@keyframes t-shake { 0% { transform: translateX(-4px); } 25% { transform: translateX(4px); } 50% { transform: translateX(-2px); } 75% { transform: translateX(1px); } 100% { transform: none; } }
+.t-readout--fumble .t-readout__num { color: var(--ink-muted); }
+.t-readout--fumble .t-roll-verdict { color: var(--ink-muted); border-style: dashed; }
+.t-readout--fumble .t-readout__verdict .t-tune__bars i:nth-child(n) { background: var(--line); }
+.t-readout--fumble .t-roll-verdict::after { animation: t-noise 1.2s steps(8) both, t-lost .3s .9s ease-out forwards; }
+@keyframes t-lost { from { opacity: .9; } to { opacity: .3; } }
+.t-readout--fumble .t-roll-verdict .t-tune__text { animation: t-tune .9s steps(9) both, t-jolt .4s .9s steps(4) both; }
+@keyframes t-jolt { 0% { opacity: .6; transform: translate(-3px, 1px); } 33% { transform: translate(3px, -1px); } 66% { transform: translate(-1px, 0); } 100% { opacity: 1; transform: none; } }
+/* 바늘이 선 칸(극단·어려운·성공)이 한 번 밝아지고, 판정 글자가 찍힌다 */
+.t-scale__hit { animation: t-hit .6s .9s ease-out both; }
+@keyframes t-hit { 30% { filter: brightness(1.8); box-shadow: 0 0 10px var(--glow); } }
+.t-scale__bar { position: absolute; left: 0; right: 0; top: 0; height: 10px; display: flex; border: 1px solid var(--line-strong); }
+.t-scale__ticks { position: absolute; left: 0; right: 0; top: 11px; height: 6px; background: repeating-linear-gradient(90deg, var(--line-strong) 0 1px, transparent 1px 10%); }
+.t-scale__needle { position: absolute; top: -6px; width: 2px; height: 24px; background: var(--reading); box-shadow: 0 0 6px var(--glow); }
+
+/* ── 12. 작전판 (정부) ── */
+.t-valbox { --_bc: var(--accent); --_bg: var(--surface); display: flex; flex-direction: column; }
+.t-valbox__head { padding: 4px 6px; background: var(--accent); color: var(--on-accent); font-family: var(--font-pixel); font-size: 12px; letter-spacing: .02em; text-align: center; }
+.t-valbox__val { padding: 6px; font-family: var(--font-pixel); font-size: 22px; text-align: center; color: var(--ink); }
+.t-map { --_bc: var(--line-strong); --_bg: var(--surface); }
+.t-map svg { display: block; width: 100%; height: auto; }
+.t-map__coast { fill: none; stroke: var(--reading); stroke-width: 2; }
+.t-map__route { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 3 4; }
+.t-map__ring { fill: none; stroke: var(--ink-muted); stroke-width: 1; }
+.t-map__ring--dash { stroke-dasharray: 4 5; }
+.t-map__mark { fill: none; stroke: var(--ink); stroke-width: 1.8; }
+.t-map__mark--fill { fill: var(--ink); }
+.t-map__here { fill: var(--reading); }
+.t-map__txt { fill: var(--ink-muted); font-family: var(--font-pixel); font-size: 10px; }
+.t-intel { --_bc: var(--line-strong); --_bg: var(--surface); margin: 0; }
+.t-intel__bar { height: 6px; background: var(--accent); }
+.t-intel img { display: block; width: 100%; height: 150px; object-fit: cover; filter: grayscale(1) contrast(1.1); }
+.t-intel__cap { padding: var(--space-2) 10px; border-top: 1px solid var(--line-strong); font-family: var(--font-body); font-size: 13px; color: var(--reading); }
+.t-hazard { height: 10px; background: repeating-linear-gradient(-45deg, var(--government) 0 10px, var(--surface) 10px 20px); }
+.t-hazard--thin { height: 5px; }
+
+/* ── 13. 픽셀 아이콘 · 물품 ── */
+.t-px { width: 22px; height: 22px; flex-shrink: 0; vertical-align: middle; shape-rendering: crispEdges; }
+.t-px--sm { width: 16px; height: 16px; } .t-px--lg { width: 32px; height: 32px; } .t-px--xl { width: 48px; height: 48px; }
+.t-px .px-a { fill: var(--ink); } .t-px .px-b { fill: var(--ink-muted); } .t-px .px-c { fill: var(--reading); }
+.t-btn--primary .t-px .px-a, .t-btn--solid .t-px .px-a, .t-tag--solid .t-px .px-a, .t-card .t-px .px-a { fill: var(--on-accent); }
+.t-btn--primary .t-px .px-b, .t-btn--solid .t-px .px-b, .t-tag--solid .t-px .px-b, .t-card .t-px .px-b { fill: var(--on-accent); opacity: .55; }
+.t-btn--primary .t-px .px-c, .t-btn--solid .t-px .px-c, .t-tag--solid .t-px .px-c, .t-card .t-px .px-c { fill: var(--on-accent); opacity: .3; }
+.t-tag--gov .t-px .px-a { fill: var(--government); } .t-tag--gov .t-px .px-b { fill: var(--government-muted); } .t-tag--gov .t-px .px-c { fill: var(--government-reading); }
+.t-pxwell { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex-shrink: 0; border: 1px solid var(--line-strong); background: var(--surface-raised); box-shadow: var(--shadow-inset); }
+.t-evigrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2); }
+.t-evidence { position: relative; display: flex; flex-direction: column; width: 100%; margin: 0; border: 1px solid var(--line-strong); background: var(--surface);
+  -webkit-mask: radial-gradient(circle 6px at 0 calc(100% - 46px), transparent 5.5px, #000 6px) left / 51% 100% no-repeat, radial-gradient(circle 6px at 100% calc(100% - 46px), transparent 5.5px, #000 6px) right / 51% 100% no-repeat;
+  mask: radial-gradient(circle 6px at 0 calc(100% - 46px), transparent 5.5px, #000 6px) left / 51% 100% no-repeat, radial-gradient(circle 6px at 100% calc(100% - 46px), transparent 5.5px, #000 6px) right / 51% 100% no-repeat; }
+.t-evidence__art { display: flex; align-items: center; justify-content: center; aspect-ratio: 1; background-color: var(--surface-raised); background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 8px 8px; }
+.t-evidence__art .t-px { width: 64px; height: 64px; }
+.t-evidence__no { position: absolute; top: 6px; left: 6px; padding: 1px 5px; background: var(--reading); color: var(--on-accent); font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+.t-evidence__cap { display: flex; flex-direction: column; gap: 1px; padding: 5px 7px 6px; border-top: 1px dashed var(--line-strong); }
+.t-evidence__cap b { font-size: 13px; color: var(--ink); }
+.t-evidence__cap span { font-size: 12px; color: var(--ink-muted); }
+/* 얇은 선 아이콘 (보조) */
+.t-ico { width: 20px; height: 20px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.t-ico--sm { width: 16px; height: 16px; } .t-ico--lg { width: 28px; height: 28px; stroke-width: 1.5; }
+
+/* ── 14. 판독지 (관찰 보고서) ── */
+/* 판독지는 단말 안에서 라이트박스에 불을 켠 밝은 종이. 종이 결은 색 없는 질감 한 장(paper-grain)을 테마 색 위에 얹는다 */
+.t-desk { background: radial-gradient(ellipse at 50% 30%, var(--lightbox), var(--surface) 90%); }
+.t-filmedge { width: 22px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 10px 0; background: var(--housing-shadow); }
+.t-filmedge__hole { width: 10px; height: 7px; border-radius: 2px; background: var(--lightbox); }
+.t-filmedge__mark { writing-mode: vertical-rl; font-family: var(--font-pixel); font-size: 12px; letter-spacing: .3em; color: var(--engraving); }
+.t-dossier { position: relative; padding: 16px 14px 18px 30px; background: var(--surface-raised) url('../assets/textures/paper-grain.png') 0 0 / 256px 256px; border: 1px solid var(--line-strong); box-shadow: 5px 6px 0 -1px var(--surface), 5px 6px 0 0 var(--line), 10px 12px 0 -1px var(--surface), 10px 12px 0 0 var(--line), 0 2px 0 var(--paper-shade), 0 8px 18px var(--paper-shade); color: var(--ink); counter-reset: sec; }
+/* 뒤에 겹쳐 철한 서류 두 장(그림자 겹)과 철 구멍 두 개: 한 장짜리 카드가 아니라 서류철로 보이게 */
+.t-dossier::after { content: ""; position: absolute; top: 0; bottom: 0; left: 9px; width: 12px; background: radial-gradient(circle at 6px 6px, var(--lightbox) 4.5px, var(--line-strong) 5px, transparent 5.5px) 0 64px / 12px 50% repeat-y; pointer-events: none; }
+.t-dossier__tab { position: absolute; top: -22px; right: 18px; height: 22px; padding: 0 14px; display: flex; align-items: center; background: var(--surface-raised) url('../assets/textures/paper-grain.png') 0 0 / 256px 256px; border: 1px solid var(--line-strong); border-bottom: none; clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 100%, 0 100%); font-family: var(--font-pixel); font-size: 12px; letter-spacing: .2em; color: var(--ink); }
+/* 쪽 색인 탭: 서류철 위로 솟은 쪽 이동. 지금 쪽은 종이와 이어지고 나머지는 한 칸 뒤로 */
+.t-dossier__tabs { position: absolute; bottom: 100%; right: 12px; display: flex; align-items: flex-end; gap: 2px; }
+.t-dossier__tabs a { display: flex; align-items: center; gap: 6px; height: 44px; margin-bottom: -1px; padding: 4px 16px 0; box-sizing: border-box; background: var(--surface) url('../assets/textures/paper-grain.png') 30px 0 / 256px 256px; border: 1px solid var(--line); border-bottom: none; clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 100%, 0 100%); font-family: var(--font-pixel); font-size: 12px; letter-spacing: .02em; color: var(--ink-muted); text-decoration: none; }
+.t-dossier__tabs a b { font-size: 14px; }
+.t-dossier__tabs a:hover { color: var(--ink); }
+.t-dossier__tabs a[aria-current="page"] { padding-top: 0; background: var(--surface-raised) url('../assets/textures/paper-grain.png') 0 0 / 256px 256px; border-color: var(--line-strong); color: var(--ink); }
+.t-dossier__tabs a:focus-visible { outline: 2px solid var(--focus); outline-offset: -3px; }
+.t-dossier__pager { display: flex; justify-content: flex-end; margin-top: var(--space-2); }
+/* ── 피드백 ── */
+/* 확인 창: 되돌릴 수 없는 일에만. 화면 위에 뜬 단말 창. 무엇이 사라지고 무엇이 남는지 적고, 안전한 쪽이 먼저(초점), 위험한 쪽은 위험색 */
+.t-dialog-backdrop { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: var(--space-4); background: var(--scrim); }
+.t-dialog { --_bc: var(--status-danger); --_bg: var(--surface); position: relative; isolation: isolate; width: 100%; max-width: 360px; background: var(--_bc); clip-path: var(--shape-chamfer); box-shadow: var(--shadow-drop); animation: t-pop .16s ease-out both; }
+.t-dialog::before { content: ""; position: absolute; inset: 1.5px; z-index: -1; background: var(--_bg); clip-path: var(--shape-chamfer); }
+.t-dialog__bar { display: flex; align-items: center; gap: var(--space-2); padding: 8px 14px; background: color-mix(in srgb, var(--status-danger) 16%, var(--surface)); color: var(--status-danger); font-family: var(--font-pixel); font-size: 12px; letter-spacing: .06em; }
+.t-dialog__body { display: flex; flex-direction: column; gap: var(--space-3); padding: 14px 16px 16px; }
+.t-dialog__title { margin: 0; font-family: var(--font-body); font-size: 18px; font-weight: 700; line-height: 1.45; color: var(--reading); }
+.t-dialog__list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-family: var(--font-body); font-size: 14px; line-height: 1.55; color: var(--reading); }
+.t-dialog__list li { display: grid; grid-template-columns: 52px 1fr; gap: 8px; }
+.t-dialog__list b { font-family: var(--font-mono); font-size: 12px; font-weight: 400; color: var(--ink-muted); padding-top: 2px; }
+.t-dialog__actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); margin-top: var(--space-1); }
+.t-btn--danger { --_bc: var(--status-danger); --_bg: var(--status-danger); color: var(--surface); font-weight: 700; }
+.t-btn--danger:hover { --_bc: var(--reading); }
+.t-btn--danger:disabled { opacity: .4; }
+@keyframes t-pop { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+/* 알림 띠: 잠깐 떠오르는 한 줄. 화면 아래(선택 줄 위). 성공·정보는 4초 뒤 스스로 내려가고, 실패는 사람이 닫을 때까지 남는다 */
+.t-toast { display: flex; align-items: center; gap: var(--space-2); min-height: 48px; padding: 6px 6px 6px 12px; background: var(--surface-raised); border: 1px solid var(--line-strong); border-left: 3px solid var(--_c, var(--status-info)); box-shadow: var(--shadow-drop); color: var(--reading); font-family: var(--font-body); font-size: 14px; animation: t-rise .18s ease-out both; }
+.t-toast--ok { --_c: var(--status-ok); } .t-toast--danger { --_c: var(--status-danger); }
+.t-toast__text { flex: 1; min-width: 0; line-height: 1.45; }
+.t-toast__close { width: 44px; height: 44px; flex-shrink: 0; display: grid; place-items: center; border: none; background: none; color: var(--ink-muted); font-size: 18px; cursor: pointer; }
+.t-toast__close:hover { color: var(--ink); }
+.t-toast .t-btn { min-height: 44px; padding: 0 12px; }
+@keyframes t-rise { from { opacity: 0; transform: translateY(10px); } }
+/* 빈 상태: 단말에서는 신호 없는 납작한 선(아직 아무 일도 없다), 판독지에서는 "기재 사항 없음"이 찍힌 빈 칸. 늘 다음에 할 수 있는 일 하나를 준다 */
+.t-empty { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); padding: 22px 16px; text-align: center; }
+.t-empty__line { width: 100%; max-width: 260px; height: 28px; }
+.t-empty__line path { fill: none; stroke: var(--ink-muted); stroke-width: 1.5; }
+.t-empty__title { margin: 0; font-family: var(--font-body); font-size: 16px; font-weight: 700; color: var(--reading); }
+.t-empty__text { margin: 0; font-family: var(--font-body); font-size: 14px; line-height: 1.6; color: var(--ink-muted); }
+.t-empty--form { padding: 18px 12px; border: 1px dashed var(--line-strong); }
+.t-empty--form .t-stamp { --_mx: 180px; color: var(--ink-muted); }
+/* 불러오는 중: 자리만 잡힌 줄(가는 막대) 위로 주사선이 지나간다 + 세계관 한 줄 */
+.t-loading { display: flex; flex-direction: column; gap: var(--space-3); }
+.t-loading__text { display: flex; align-items: center; gap: 8px; margin: 0; font-family: var(--font-mono); font-size: 13px; color: var(--ink-muted); }
+.t-loading__text::after { content: ""; width: 8px; height: 14px; background: var(--ink-muted); animation: t-caret 1s steps(1) infinite; }
+@keyframes t-caret { 50% { opacity: 0; } }
+.t-skel { position: relative; overflow: hidden; display: grid; grid-template-columns: 44px 1fr; gap: 10px; align-items: center; }
+.t-skel__face { width: 44px; height: 44px; background: var(--line); clip-path: var(--shape-octagon); }
+.t-skel__lines { display: flex; flex-direction: column; gap: 7px; }
+.t-skel__lines i { display: block; height: 9px; background: var(--line); }
+.t-skel__lines i:nth-child(1) { width: 38%; } .t-skel__lines i:nth-child(2) { width: 86%; }
+.t-skel::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, var(--busy-stripe), transparent); transform: translateX(-100%); animation: t-skel 1.4s linear infinite; }
+@keyframes t-skel { to { transform: translateX(100%); } }
+
+
+/* 처분서: 되돌릴 수 없는 일의 확인. 창 대신 서류 한 장이 아래에서 밀려 올라온다.
+   서명(캐릭터 이름)을 적어야 확정 버튼이 켜지고, 확정하면 날인 칸에 도장이 찍힌다. */
+.t-writ-backdrop { position: absolute; inset: 0; z-index: 20; display: flex; align-items: flex-end; justify-content: center; padding: var(--space-4) var(--space-3) 0; background: var(--scrim); }
+.t-writ { position: relative; width: 100%; max-width: 366px; max-height: 100%; overflow: auto; padding: 16px 16px 14px; background: var(--surface-raised) url('../assets/textures/paper-grain.png') 0 0 / 256px 256px; border: 1px solid var(--line-strong); border-bottom: none; box-shadow: 0 -2px 0 var(--paper-shade), 0 -10px 24px var(--paper-shade); color: var(--ink); animation: t-slip .28s cubic-bezier(.2,.8,.2,1) both; }
+.t-writ__org { display: flex; align-items: center; gap: var(--space-2); font-family: var(--font-mono); font-size: 12px; color: var(--ink-muted); }
+.t-writ__org .t-mark { width: 30px; height: 30px; flex: none; color: var(--government); }
+.t-writ__org b { display: block; font-weight: 700; color: var(--ink); }
+.t-writ__title { margin: 12px 0 2px; padding: 6px 0; border-top: 3px double var(--ink); border-bottom: 1px solid var(--ink); text-align: center; font-family: var(--font-pixel); font-size: 20px; font-weight: 700; letter-spacing: .3em; color: var(--ink); }
+.t-writ__no { margin: 0 0 10px; text-align: right; font-family: var(--font-mono); font-size: 12px; color: var(--ink-muted); }
+.t-writ__rows { margin: 0; display: grid; grid-template-columns: 76px 1fr; border-top: 1px solid var(--line-strong); border-left: 1px solid var(--line-strong); font-size: 14px; line-height: 1.55; }
+.t-writ__rows dt, .t-writ__rows dd { margin: 0; padding: 6px 8px; border-right: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong); }
+.t-writ__rows dt { background: color-mix(in srgb, var(--ink) 6%, transparent); font-family: var(--font-mono); font-size: 12px; color: var(--ink-muted); }
+.t-writ__rows dd { font-family: var(--font-body); color: var(--ink); }
+.t-writ__warn { display: flex; gap: 6px; align-items: flex-start; margin: 10px 0 0; font-family: var(--font-body); font-size: 14px; line-height: 1.5; color: var(--status-danger); }
+.t-writ__warn .t-px { flex: none; margin-top: 2px; }
+.t-writ__sign { display: grid; grid-template-columns: 1fr 76px; gap: var(--space-3); align-items: end; margin-top: 14px; }
+.t-writ__field { display: flex; flex-direction: column; gap: 2px; }
+.t-writ__field label { font-family: var(--font-mono); font-size: 12px; color: var(--ink-muted); }
+.t-writ__line { min-height: 44px; width: 100%; padding: 6px 2px 2px; border: none; border-bottom: 1.5px solid var(--ink); background: transparent; font-family: var(--font-body); font-size: 18px; color: var(--ink); }
+.t-writ__line::placeholder { color: var(--ink-muted); opacity: .7; }
+.t-writ__line:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.t-writ__slot { position: relative; display: grid; place-items: center; width: 76px; height: 76px; border: 1.5px dashed var(--line-strong); border-radius: 50%; font-family: var(--font-mono); font-size: 12px; color: var(--ink-muted); }
+.t-writ__slot .t-roundstamp { position: absolute; inset: -6px; width: 88px; height: 88px; color: var(--stamp); animation: t-thud .22s cubic-bezier(.3,1.6,.5,1) both; }
+.t-writ__actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); margin-top: 14px; }
+.t-writ__done { margin: 14px 0 0; padding: 8px 10px; border: 1px dashed var(--line-strong); font-family: var(--font-body); font-size: 14px; line-height: 1.5; color: var(--ink); }
+.t-writ__foot { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 12px; padding-top: 8px; border-top: 1px dashed var(--line-strong); font-family: var(--font-mono); font-size: 12px; color: var(--ink-muted); }
+@keyframes t-slip { from { transform: translateY(100%); } }
+@keyframes t-thud { from { opacity: 0; transform: scale(1.6) rotate(-14deg); } }
+
+/* 고르기 칸: 여럿 중 하나를 고르는 모든 곳(역할, 기억상실 정도, 보내두기 방식, 갈림길)이 같은 칸을 쓴다.
+   고른 것은 색만이 아니라 등(빈 네모 → 안이 찬 네모)과 두꺼운 테두리로도 보인다 */
+.t-picks { display: flex; flex-direction: column; gap: var(--space-2); margin: 0; padding: 0; border: none; min-width: 0; list-style: none; }
+.t-picks__legend { margin: 0 0 2px; padding: 0; font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--ink); }
+.t-picks__note { margin: 2px 2px 0; font-family: var(--font-body); font-size: 13px; line-height: 1.6; color: var(--ink-muted); }
+.t-pick { --_bc: var(--line-strong); --_bg: var(--surface); --_bw: 1px; --_cut: 10px;
+  --_shape: polygon(var(--_cut) 0, 100% 0, 100% calc(100% - var(--_cut)), calc(100% - var(--_cut)) 100%, 0 100%, 0 var(--_cut));
+  position: relative; isolation: isolate; display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; align-items: center; column-gap: 12px; row-gap: 4px;
+  width: 100%; min-height: 56px; margin: 0; padding: 10px 14px; box-sizing: border-box; border: none; background: var(--_bc); clip-path: var(--_shape);
+  color: var(--ink); font-family: var(--font-mono); font-size: 15px; line-height: 1.4; text-align: left; cursor: pointer; }
+.t-pick::before { content: ""; position: absolute; inset: var(--_bw); z-index: -1; background: var(--_bg); clip-path: var(--_shape); pointer-events: none; }
+.t-pick__lamp { width: 16px; height: 16px; box-sizing: border-box; border: 2px solid var(--ink-muted); }
+.t-pick__title { min-width: 0; font-weight: 700; overflow-wrap: anywhere; }
+.t-pick__title .t-key-hint { margin-right: 6px; color: var(--ink-muted); }
+.t-pick__side { display: flex; align-items: center; gap: 6px; justify-self: end; }
+.t-pick__desc { grid-column: 2 / -1; margin: 0; font-family: var(--font-body); font-size: 13px; line-height: 1.6; color: var(--ink-muted); }
+/* 판정 꼬리표: 능력치 이름과 수치. 판정이 없는 선택지는 점선처럼 가라앉힌다 */
+.t-pick__stat { font-variant-numeric: tabular-nums; }
+.t-pick__stat--none { --_bc: var(--line); color: var(--ink-muted); }
+.t-pick__auto { --_bc: var(--ink-muted); color: var(--ink-muted); }
+/* 설명이 붙는 칸은 제목이 한 줄을 다 쓰고, 판정 꼬리표는 제목 아래로 내려간다 (긴 갈림길 문장이 꺾이지 않게) */
+.t-pick:not(.t-pick--row) .t-pick__side { grid-column: 2 / -1; justify-self: start; }
+/* 한 줄 칸: 설명 없이 짧게 (기억상실 정도, 보내두기 방식) */
+.t-pick--row { min-height: 48px; padding: 6px 14px; font-size: 14px; }
+/* 상태 */
+.t-pick:hover { --_bc: var(--ink); }
+.t-pick:active { transform: translateY(1px); }
+.t-pick:focus-visible { outline: none; --_bc: var(--focus); --_bw: 2px; }
+.t-pick[aria-checked="true"] { --_bc: var(--accent); --_bw: 2px; --_bg: var(--surface-raised); }
+.t-pick[aria-checked="true"] .t-pick__lamp { border-color: var(--accent); background: var(--accent); box-shadow: inset 0 0 0 3px var(--surface-raised), 0 0 6px var(--glow); }
+.t-pick[aria-checked="true"]:focus-visible { --_bc: var(--focus); }
+.t-pick[aria-disabled="true"] { cursor: not-allowed; transform: none; --_bc: var(--line); color: var(--ink-muted); }
+.t-pick[aria-disabled="true"] .t-pick__lamp { border-style: dotted; }
+/* 동행 탐색의 갈림길 투표: 누가 어디를 골랐는지 이름으로 보인다 (수를 세어 보이지 않는다) */
+.t-pick__who { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.t-pick__who li { display: inline-flex; align-items: center; gap: 4px; padding: 0 6px; border: 1px solid var(--line-strong); font-size: 12px; color: var(--ink); }
+.t-pick__who img { width: 16px; height: 16px; object-fit: cover; filter: grayscale(1) contrast(1.2); }
+/* 판정이 끝난 뒤: 고른 칸만 밝게 남고 판정 결과가 붙는다. 나머지는 가라앉는다. 더 누를 수 없으므로 버튼이 아니라 목록으로 바꾼다 */
+.t-picks--done .t-pick { cursor: default; }
+.t-picks--done .t-pick:hover { --_bc: var(--line); }
+.t-picks--done .t-pick:not([aria-current]) { --_bc: var(--line); color: var(--ink-muted); }
+.t-picks--done .t-pick:not([aria-current]) .t-pick__lamp { visibility: hidden; }
+.t-picks--done .t-pick[aria-current] { --_bc: var(--accent); --_bw: 2px; --_bg: var(--surface-raised); }
+.t-picks--done .t-pick[aria-current] .t-pick__lamp { border-color: var(--accent); background: var(--accent); box-shadow: inset 0 0 0 3px var(--surface-raised); }
+.t-pick__result { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px; margin-top: 6px; padding-top: 8px; border-top: 1px dashed var(--line-strong); }
+.t-pick__check { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.t-pick__check b { font-family: var(--font-pixel); font-size: 15px; letter-spacing: .04em; }
+.t-pick__outcome { margin: 0; font-family: var(--font-body); font-size: 14px; line-height: 1.7; color: var(--reading); font-weight: 400; }
+.t-pick__record { margin: 0; font-size: 12px; color: var(--ink-muted); }
+@media (prefers-reduced-motion: reduce) { .t-pick:active { transform: none; } .t-pick[aria-checked="true"] .t-pick__lamp { box-shadow: inset 0 0 0 3px var(--surface-raised); } }
+
+/* ── 입력 묶음: 가입과 캐릭터 만들기 ── */
+/* 단계 표시: 지금 몇 번째, 무엇을 하는지 글자로. 칸 막대는 보조 */
+.t-steps { display: flex; flex-direction: column; gap: 6px; }
+.t-steps__now { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-2); font-size: 13px; color: var(--ink-muted); }
+.t-steps__now b { font-family: var(--font-pixel); font-size: 15px; font-weight: 700; color: var(--ink); }
+.t-steps__bar { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.t-steps__bar li { position: relative; height: 6px; background: var(--line); }
+.t-steps__bar li[data-done] { background: var(--ink-muted); }
+.t-steps__bar li[aria-current] { background: var(--accent); box-shadow: 0 0 6px var(--glow); }
+.t-steps__bar li > span:not(.t-steps__state) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.t-steps__state { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* 넓은 화면: 단계 이름을 세로로 늘어놓는다 */
+.t-steps--side .t-steps__bar { grid-auto-flow: row; gap: 0; }
+.t-steps--side .t-steps__bar li { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: var(--space-2); height: auto; min-height: 46px; padding: 0 var(--space-4); background: none; border-left: 3px solid var(--line); color: var(--ink-muted); font-size: 15px; box-shadow: none; }
+.t-steps--side .t-steps__bar li > span:not(.t-steps__state) { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
+.t-steps--side .t-steps__n { font-family: var(--font-pixel); font-size: 13px; }
+.t-steps--side .t-steps__bar li[data-done] { border-left-color: var(--ink-muted); color: var(--ink); }
+.t-steps--side .t-steps__bar li[data-done]::after { content: "끝남"; font-size: 12px; color: var(--ink-muted); }
+.t-steps--side .t-steps__bar li[aria-current] { border-left-color: var(--accent); background: var(--surface-raised); color: var(--ink); font-weight: 700; }
+.t-steps--side .t-steps__bar li[aria-current]::after { content: "지금"; font-size: 12px; font-weight: 400; color: var(--accent); }
+
+/* 글 칸: 제목 + 글자 수 + 칸 + 도움말. 긴 글은 본문 글꼴로 */
+.t-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.t-field__head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-2); }
+.t-field__label { font-size: 14px; font-weight: 700; color: var(--ink); }
+.t-field__opt { margin-left: 6px; font-size: 12px; font-weight: 400; color: var(--ink-muted); }
+.t-field__count { font-size: 12px; color: var(--ink-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.t-field__help { margin: 0; font-family: var(--font-body); font-size: 13px; line-height: 1.6; color: var(--ink-muted); }
+.t-field__ok { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; color: var(--status-ok); }
+.t-field__ok::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+.t-field .t-input { width: 100%; }
+.t-field__row { display: flex; gap: var(--space-2); }
+.t-field__row .t-input { flex-grow: 1; min-width: 0; }
+.t-field__row .t-btn { flex-shrink: 0; white-space: nowrap; }
+.t-input--area { min-height: 112px; padding: 10px 12px; line-height: 1.7; resize: vertical; }
+select.t-input { appearance: none; padding-right: 40px; background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(-45deg, transparent 50%, var(--ink) 50%); background-position: calc(100% - 20px) 50%, calc(100% - 14px) 50%; background-size: 6px 6px; background-repeat: no-repeat; }
+/* 임시저장 표시: 쓰는 동안 조용히 */
+.t-saved { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-muted); }
+.t-saved::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--ink-muted); }
+
+/* 확인 칸: 네모 안 체크. 필수는 글자로 적는다 */
+.t-agree { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: center; column-gap: 10px; min-height: 48px; font-size: 14px; line-height: 1.5; color: var(--ink); }
+.t-agree input { appearance: none; display: grid; place-content: center; width: 22px; height: 22px; margin: 0; border: 2px solid var(--line-strong); background: var(--surface-raised); cursor: pointer; }
+.t-agree input:checked { border-color: var(--accent); background: var(--accent); }
+.t-agree input:checked::after { content: ""; width: 10px; height: 5px; border-left: 3px solid var(--on-accent); border-bottom: 3px solid var(--on-accent); transform: translateY(-2px) rotate(-45deg); }
+.t-agree input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.t-agree label { cursor: pointer; padding: 12px 0; }
+.t-agree__req { margin-left: 4px; font-size: 12px; color: var(--ink-muted); }
+.t-agree--all { border-bottom: 1px solid var(--line); font-weight: 700; }
+
+/* 능력치 나누기: 남은 포인트 → 줄마다 [−] 수치 [+] → 막대(기본 30은 흐리게, 넣은 만큼 밝게, 60에 상한 눈금) */
+.t-alloc { display: flex; flex-direction: column; }
+.t-alloc__left { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: 10px 14px; border: 1px solid var(--line-strong); background: var(--surface-raised); }
+.t-alloc__left b { font-family: var(--font-pixel); font-size: 28px; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.t-alloc__left span { font-size: 13px; color: var(--ink-muted); }
+.t-alloc__row { display: grid; grid-template-columns: minmax(0, 1fr) 44px 44px 44px; grid-template-areas: "name minus val plus" "bar bar bar bar"; align-items: center; column-gap: 4px; row-gap: 6px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.t-alloc__name { grid-area: name; display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 15px; font-weight: 700; color: var(--ink); }
+.t-alloc__name small { font-family: var(--font-body); font-size: 12px; font-weight: 400; color: var(--ink-muted); }
+.t-alloc__row > .t-btn:first-of-type { grid-area: minus; }
+.t-alloc__row > .t-btn:last-of-type { grid-area: plus; }
+.t-alloc__row > .t-btn { width: 44px; padding: 0; font-size: 20px; }
+.t-alloc__val { grid-area: val; text-align: center; font-family: var(--font-pixel); font-size: 18px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.t-alloc__bar { grid-area: bar; position: relative; height: 8px; background: linear-gradient(90deg, var(--ink-muted) 0 30%, var(--accent) 30% calc(var(--v) * 1%), var(--line) calc(var(--v) * 1%)); }
+.t-alloc__bar::after { content: ""; position: absolute; left: 60%; top: -3px; bottom: -3px; width: 2px; background: var(--ink); }
+.t-alloc__scale { position: relative; height: 18px; margin: 8px 0 0; font-size: 12px; color: var(--ink-muted); }
+.t-alloc__scale span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+.t-alloc__scale span:first-child { transform: none; } .t-alloc__scale span:last-child { transform: translateX(-100%); }
+
+/* 사진 칸: 세 장까지. 첫 장이 대표. 빈 칸은 점선 */
+.t-upload { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
+.t-upload__slot { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; aspect-ratio: 3 / 4; padding: 6px; box-sizing: border-box; border: 1px dashed var(--line-strong); background: var(--surface); color: var(--ink-muted); font-family: var(--font-mono); font-size: 13px; text-align: center; overflow: hidden; }
+button.t-upload__slot { cursor: pointer; }
+button.t-upload__slot:hover { border-color: var(--ink); color: var(--ink); }
+button.t-upload__slot:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.t-upload__slot--filled { border-style: solid; padding: 0; }
+.t-upload__slot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.15); }
+.t-upload__slot .t-tag { position: absolute; left: 6px; top: 6px; }
+.t-upload__del { position: absolute; right: 0; top: 0; width: 44px; height: 44px; border: none; background: var(--scrim); color: var(--ink); font-size: 20px; cursor: pointer; }
+.t-upload__busy { position: absolute; inset: auto 0 0 0; padding: 6px; background: var(--scrim-strong); color: var(--ink); font-size: 12px; }
+
+/* 아래 조작 막대: 이전과 다음. 엄지가 닿는 곳 */
+.t-formbar { display: flex; gap: var(--space-2); padding: 10px 12px 12px; border-top: 1px solid var(--line-strong); background: var(--surface); }
+.t-formbar .t-btn--primary { flex-grow: 1; }
+.t-formbar .t-btn--outline { min-height: 56px; }
+
+/* 안내 순서: 번호가 진짜 순서일 때만 */
+.t-howto { margin: 0; padding: 0; list-style: none; counter-reset: how; display: flex; flex-direction: column; }
+.t-howto li { counter-increment: how; display: grid; grid-template-columns: 32px 1fr; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--line); font-family: var(--font-body); font-size: 15px; line-height: 1.6; color: var(--reading); }
+.t-howto li::before { content: counter(how); display: grid; place-content: center; width: 28px; height: 28px; border: 1px solid var(--line-strong); font-family: var(--font-pixel); font-size: 14px; color: var(--ink); }
+.t-howto b { color: var(--ink); font-weight: 700; }
+
+/* 상태 꼬리표: 계기 표시등. 상태마다 색과 모양이 함께 다르다 (●완료 ▲주의 ◆위험 ◯진행 중 ○대기). 옅은 바탕 + 얇은 테두리 */
+.t-status { --_c: var(--status-idle); display: inline-flex; align-items: center; gap: 6px; min-height: 26px; box-sizing: border-box; padding: 4px 9px 4px 7px; border: 1px solid color-mix(in srgb, var(--_c) 55%, transparent); border-radius: 2px; background: color-mix(in srgb, var(--_c) 14%, var(--surface)); color: var(--_c); font-family: var(--font-mono); font-size: 13px; line-height: 1.2; white-space: nowrap; }
+[data-theme="film"] .t-status { background: color-mix(in srgb, var(--_c) 12%, var(--surface-raised)); }
+.t-status::before { content: ""; flex-shrink: 0; width: 9px; height: 9px; background: var(--_c); }
+.t-status--ok { --_c: var(--status-ok); } .t-status--ok::before { border-radius: 50%; }
+.t-status--warn { --_c: var(--status-warn); } .t-status--warn::before { width: 10px; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.t-status--danger { --_c: var(--status-danger); border-width: 1.5px; } .t-status--danger::before { transform: rotate(45deg) scale(.85); }
+.t-status--info { --_c: var(--status-info); } .t-status--info::before { border-radius: 50%; background: none; box-shadow: inset 0 0 0 2px var(--_c); }
+.t-status--idle::before { border-radius: 50%; background: none; box-shadow: inset 0 0 0 1.5px var(--_c); }
+
+/* 관계도: 수사 보드처럼 사진과 이름표를 핀으로 꽂고 실로 잇는다. 잃어버린 인연은 주황 실, 나머지는 회색 실. 실은 장식(aria-hidden)이고 카드 목록이 내용이다 */
+.t-relmap { position: relative; aspect-ratio: 300 / 620; margin: 0; padding: 0; list-style: none; border: 1px solid var(--line-strong); border-top: none; }
+.t-relmap__lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.t-relmap__lines path { fill: none; stroke: var(--ink-muted); stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+.t-relmap__lines .t-relmap__lost { stroke: var(--stamp); stroke-width: 2.2; }
+.t-relmap__lines .t-relmap__trip { stroke-dasharray: 4 4; }
+.t-relmap__lines circle { fill: var(--ink); }
+.t-relmap > li { position: absolute; }
+.t-relcard { display: block; color: var(--ink); text-decoration: none; }
+.t-relcard:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* 이름표: 흰 종이 조각에 타자로 친 이름과 밑줄. 위쪽 굵은 선, 살짝 기울임. 잃어버린 인연은 위 선과 관계명이 주황 */
+.t-relcard__label { display: block; width: fit-content; max-width: 100%; padding: 4px 8px 5px; background: var(--slip-copy); color: var(--ink); border: 1px solid var(--line-strong); border-top: 3px solid var(--ink); transform: rotate(-1deg); box-shadow: 0 2px 4px var(--paper-shade); }
+.t-relcard__label small { display: block; font-family: var(--font-mono); font-size: 12px; line-height: 1.3; color: var(--ink-muted); }
+.t-relcard__label b { display: inline-block; padding-bottom: 1px; border-bottom: 1px solid var(--ink); font-family: var(--font-mono); font-size: 15px; font-weight: 700; line-height: 1.3; }
+.t-relcard--lost .t-relcard__label { border-top-color: var(--stamp); }
+.t-relcard--lost .t-relcard__label small { color: var(--stamp); font-weight: 700; }
+.t-relcard--self .t-relcard__label { border: 2px solid var(--ink); transform: none; }
+.t-relcard__photo { display: block; width: 64px; height: 64px; object-fit: cover; filter: grayscale(1) contrast(1.35); box-shadow: 0 0 0 3px var(--surface-raised), 0 0 0 4px var(--line-strong); margin: 6px 0 0 3px; }
+.t-relcard__note { display: block; width: fit-content; margin-top: 7px; padding: 1px 3px; background: var(--surface-raised); font-family: var(--font-body); font-size: 12px; line-height: 1.5; color: var(--ink-muted); }
+.t-relcard__note b { color: var(--ink); font-weight: 700; }
+.t-relcard:hover .t-relcard__label { text-decoration: underline; }
+.t-relplace { display: block; width: fit-content; padding: 2px 4px; background: var(--surface-raised); }
+.t-relplace b { display: block; font-family: var(--font-body); font-size: 17px; font-weight: 700; line-height: 1.2; color: var(--ink); }
+.t-relplace span { display: block; margin-top: 3px; font-size: 12px; line-height: 1.45; color: var(--ink-muted); }
+
+/* 활동 기록 타임라인: 날짜 줄 아래로 한 건씩. 갈래는 모양 + 글자로 (색만으로 전하지 않는다) */
+.t-timeline { list-style: none; margin: 0; padding: 0; }
+.t-timeline__day { display: flex; align-items: center; gap: var(--space-2); margin: var(--space-4) 0 var(--space-1); font-family: var(--font-pixel); font-size: 13px; letter-spacing: 0; color: var(--ink); }
+.t-timeline__day:first-child { margin-top: var(--space-1); }
+.t-timeline__day::after { content: ""; flex: 1; border-top: 1px dashed var(--line-strong); }
+.t-timeline__item { position: relative; display: grid; grid-template-columns: 42px 20px 1fr; column-gap: var(--space-2); padding-bottom: var(--space-3); }
+.t-timeline__item::before { content: ""; position: absolute; top: 0; bottom: 0; left: 59px; border-left: 1px solid var(--line-strong); }
+.t-timeline__day + .t-timeline__item::before { top: 8px; }
+.t-timeline__time { padding-top: 1px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-muted); text-align: right; }
+.t-timeline__node { position: relative; z-index: 1; justify-self: center; width: 12px; height: 12px; margin-top: 3px; box-sizing: border-box; background: var(--surface-raised); border: 2px solid var(--ink); }
+.t-timeline__node--dispatch { border-color: var(--government); background: var(--government); transform: rotate(45deg) scale(.85); }
+.t-timeline__node--rest { border-color: var(--foundation); border-radius: 50%; }
+.t-timeline__node--together { border-radius: 50%; box-shadow: 0 0 0 2px var(--surface-raised), 0 0 0 3px var(--ink); }
+.t-timeline__node--choice { border-width: 2px; }
+.t-timeline__node--work { border-color: var(--foundation); background: var(--foundation); }
+.t-timeline__node--care { border-color: var(--foundation); border-radius: 50%; background: var(--foundation); }
+.t-timeline__node--trip { border-color: var(--ink); transform: rotate(45deg) scale(.85); }
+.t-timeline__node--visit { border-color: var(--stamp); border-radius: 50%; }
+.t-timeline__body { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.t-timeline__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--ink); }
+.t-timeline__kind { font-family: var(--font-pixel); font-size: 12px; font-weight: 400; letter-spacing: 0; color: var(--ink-muted); }
+.t-timeline__kind--gov { color: var(--government); }
+.t-timeline__kind--foundation { color: var(--foundation); }
+.t-timeline__text { margin: 0; font-family: var(--font-body); font-size: 14px; line-height: 1.6; color: var(--reading); }
+.t-timeline__meta { display: flex; flex-wrap: wrap; gap: 2px 10px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-muted); }
+.t-timeline__roll { color: var(--ink); }
+.t-timeline__mark { align-self: flex-start; margin: 6px 0 2px 4px; }
+/* 활동 기록 쪽지: 서식이 인쇄된 색종이 쪽지를 타자로 채워 겹쳐 철한 것. 갈래마다 종이 색이 다르다 (색만으로 전하지 않고 서식 이름을 함께 찍는다) */
+.t-slip { --_paper: var(--slip-copy); position: relative; margin: 0; padding: 0 0 6px; background: var(--_paper) url('../assets/textures/paper-grain.png') 0 0 / 256px 256px; color: var(--ink); border: 1px solid var(--line-strong); box-shadow: 0 1px 0 var(--paper-shade), 0 6px 14px var(--paper-shade); transform: rotate(var(--_rot, 0deg)); font-family: var(--font-mono); }
+.t-slip--gov { --_paper: var(--slip-gov); }
+.t-slip--foundation { --_paper: var(--slip-foundation); }
+.t-slip--memo { --_paper: var(--slip-memo); }
+.t-slip--copy { --_paper: var(--slip-copy); }
+.t-slip__head { display: flex; align-items: stretch; justify-content: space-between; border-bottom: 2px solid var(--ink); }
+.t-slip__title { white-space: nowrap; padding: 5px 8px 4px; font-family: var(--font-pixel); font-size: 13px; font-weight: 700; letter-spacing: .12em; }
+.t-slip__when { display: flex; flex-direction: column; justify-content: center; padding: 2px 8px; border-left: 1px solid var(--ink); font-size: 12px; line-height: 1.25; }
+.t-slip__when small { font-size: 12px; color: var(--ink-muted); }
+.t-slip__row { display: grid; grid-template-columns: 52px 1fr; border-bottom: 1px solid var(--line-strong); }
+.t-slip__k { padding: 4px 6px; border-right: 1px solid var(--line-strong); font-size: 12px; color: var(--ink-muted); }
+.t-slip__v { min-width: 0; padding: 4px 8px; font-size: 14px; font-weight: 700; }
+.t-slip__body { margin: 0; padding: 6px 8px 4px; font-family: var(--font-mono); font-size: 14px; line-height: 24px; background: repeating-linear-gradient(to bottom, transparent 0 23px, var(--line) 23px 24px); background-position: 0 6px; }
+.t-slip__meta { display: flex; flex-wrap: wrap; gap: 2px 12px; padding: 4px 8px 0; font-size: 12px; color: var(--ink-muted); }
+.t-slip__roll { position: relative; color: var(--ink); font-weight: 700; }
+/* 손으로 두른 동그라미와 체크: 쪽지를 받은 사람이 펜으로 남긴 표시 (장식, 글자를 가리지 않는다) */
+.t-slip__circle { position: absolute; inset: -5px -8px -4px -6px; width: calc(100% + 14px); height: calc(100% + 9px); overflow: visible; pointer-events: none; }
+.t-slip__circle path, .t-slip__tick path { fill: none; stroke: var(--stamp); stroke-width: 1.6; stroke-linecap: round; }
+.t-slip__checks { display: flex; flex-wrap: wrap; gap: 2px 12px; padding: 5px 8px 2px; font-size: 12px; color: var(--ink-muted); }
+.t-slip__checks .t-check--on { color: var(--ink); }
+.t-slip__form { display: flex; justify-content: space-between; padding: 6px 8px 0; font-size: 12px; color: var(--ink-muted); }
+.t-slip__photo { display: block; width: calc(100% - 28px); height: 96px; margin: 8px 14px 2px; object-fit: cover; filter: grayscale(1) contrast(1.9) brightness(1.05); mix-blend-mode: multiply; transform: rotate(2deg); box-shadow: 0 0 0 3px var(--slip-copy), 0 0 0 4px var(--line-strong); }
+.t-slip__clip { position: absolute; top: -16px; right: -5px; width: 16px; height: 44px; background: url('../assets/textures/paperclip.png') center / contain no-repeat; pointer-events: none; }
+.t-slip__mark { margin: 6px 8px 0; }
+/* 다녀오기 표: 왼쪽이 뜯는 선으로 구멍 뚫린 차표 */
+.t-slip--ticket { margin-left: 8px; border-left: 2px dashed var(--line-strong); -webkit-mask: radial-gradient(circle at 0 9px, transparent 4px, #000 4.5px) 0 0 / 100% 18px repeat-y; mask: radial-gradient(circle at 0 9px, transparent 4px, #000 4.5px) 0 0 / 100% 18px repeat-y; }
+.t-slip__stub { position: absolute; bottom: 6px; right: 8px; font-family: var(--font-pixel); font-size: 12px; letter-spacing: .1em; color: var(--ink-muted); }
+/* 이야기 조각: 정착지 사연에서 한 줄 찢어 온 종잇조각 */
+.t-slip--torn { padding-top: 6px; border-top: none; clip-path: polygon(0 6px, 6% 1px, 13% 5px, 21% 0, 30% 4px, 38% 1px, 47% 6px, 55% 2px, 63% 5px, 72% 0, 80% 4px, 88% 1px, 95% 5px, 100% 2px, 100% 100%, 0 100%); }
+.t-slip__quote { margin: 0; padding: 4px 10px 2px; font-family: var(--font-body); font-size: 15px; line-height: 1.7; }
+.t-slip__seal { float: right; margin: 4px 6px 0 6px; }
+/* 오늘의 꾸밈: 게시판에 붙인 작은 공지 카드 (압정 하나) */
+.t-slip--notice { text-align: center; }
+.t-slip--notice::before { content: ""; position: absolute; top: -5px; left: 50%; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--stamp); box-shadow: 0 1px 0 var(--paper-shade); }
+.t-slip__big { display: block; margin: 0; padding: 8px 10px 2px; font-family: var(--font-body); font-size: 17px; font-weight: 700; line-height: 1.5; }
+/* 여행 약도: 밝혀진 곳은 실선과 이름, 아직 안 가 본 곳은 점선 */
+.t-tripmap { display: block; width: 100%; height: auto; border: 1px solid var(--line-strong); background: var(--slip-copy) url('../assets/textures/paper-grain.png') 0 0 / 256px 256px; }
+.t-tripmap__road { fill: none; stroke: var(--ink); stroke-width: 1.6; }
+.t-tripmap__road--unknown { stroke: var(--line-strong); stroke-dasharray: 3 4; }
+.t-tripmap__place { fill: var(--surface-raised); stroke: var(--ink); stroke-width: 1.6; }
+.t-tripmap__place--visited { fill: var(--ink); }
+.t-tripmap__place--unknown { stroke: var(--line-strong); stroke-dasharray: 2 2; }
+.t-tripmap text { fill: var(--ink); font-family: var(--font-mono); font-size: 12px; }
+.t-tripmap text.t-tripmap__muted { fill: var(--ink-muted); }
+.t-timeline__item .t-slip { margin-top: 2px; }
+.t-timeline__item:nth-of-type(3n+1) .t-slip { --_rot: -0.8deg; }
+.t-timeline__item:nth-of-type(3n+2) .t-slip { --_rot: 0.6deg; }
+/* 갈래 고르기: 서류철 위에 붙인 책갈피 포스트잇. 끝은 진하게 인쇄된 색, 붙은 쪽은 비치는 색. 고른 것은 더 길게 뽑혀 나온다 */
+.t-flags { display: flex; gap: 4px; padding: 0 6px; margin-bottom: -6px; position: relative; z-index: 2; }
+.t-flag { --_f: var(--flag-all); position: relative; flex: 1 1 0; min-width: 0; min-height: 44px; padding: 6px 4px 14px; border: none; background: linear-gradient(to bottom, var(--_f) 0 62%, color-mix(in srgb, var(--_f) 45%, transparent) 62%); color: var(--ink); font-family: var(--font-mono); font-size: 13px; cursor: pointer; transform: translateY(8px); transition: transform .12s ease-out; box-shadow: 0 1px 0 var(--paper-shade); }
+.t-flag--gov { --_f: var(--flag-gov); } .t-flag--copy { --_f: var(--slip-copy); box-shadow: inset 0 0 0 1px var(--line-strong), 0 1px 0 var(--paper-shade); } .t-flag--foundation { --_f: var(--flag-foundation); } .t-flag--memo { --_f: var(--flag-memo); }
+.t-flag:hover { transform: translateY(4px); }
+.t-flag[aria-pressed="true"] { transform: translateY(0); font-weight: 700; }
+.t-flag[aria-pressed="true"]::after { content: ""; position: absolute; left: 8px; right: 8px; top: 4px; height: 2px; background: var(--ink); }
+.t-flag:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.t-timeline__more { padding-left: 70px; }
+.t-dossier__class { position: absolute; top: 14px; right: 12px; }
+.t-dossier__foot { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--space-3); margin-top: var(--space-3); padding-top: var(--space-2); border-top: 1px dashed var(--line-strong); font-family: var(--font-mono); font-size: 12px; color: var(--ink-muted); }
+.t-barcode { display: flex; flex-direction: column; align-items: center; gap: 2px; font-family: var(--font-mono); font-size: 12px; letter-spacing: .3em; color: var(--ink); }
+.t-barcode svg { width: 112px; height: 26px; fill: currentColor; }
+/* 체크 칸: 서식에 타자로 X를 친 모양 */
+.t-checks { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0; padding: 8px var(--space-2); border: 1px solid var(--line-strong); border-top: none; font-family: var(--font-mono); font-size: 13px; color: var(--ink-muted); }
+.t-checks__k { color: var(--ink); }
+.t-check { display: inline-flex; align-items: center; gap: 5px; }
+.t-check::before { content: ""; width: 12px; height: 12px; box-sizing: border-box; border: 1px solid var(--line-strong); }
+.t-check--on { color: var(--ink); font-weight: 700; }
+.t-check--on::before { content: "X"; display: flex; align-items: center; justify-content: center; border-color: var(--ink); font-size: 12px; line-height: 1; }
+.t-dossier__head { display: flex; align-items: center; gap: var(--space-3); }
+.t-emblem { width: 56px; height: 56px; flex-shrink: 0; color: var(--ink); }
+.t-dossier__org { display: flex; flex-direction: column; gap: 2px; }
+.t-dossier__org b { font-size: 15px; letter-spacing: .02em; }
+.t-dossier__no { display: flex; flex-wrap: wrap; gap: 2px 14px; margin: var(--space-3) 0 var(--space-1); font-family: var(--font-mono); font-size: 12px; color: var(--ink-muted); }
+.t-dossier__clip { position: absolute; top: -26px; left: 50%; width: 22px; height: 62px; margin-left: -11px; pointer-events: none; background: url('../assets/textures/paperclip.png') center / contain no-repeat; }
+.t-bar::before { counter-increment: sec; content: counter(sec, upper-roman) ". "; color: var(--ink-muted); }
+.t-bar { margin: 0; border-left: 4px solid var(--ink-muted); padding: 6px 10px; background: var(--reading); color: var(--on-accent); font-family: var(--font-mono); font-size: 14px; font-weight: 700; letter-spacing: .04em; }
+.t-cells { display: grid; grid-template-columns: 1fr 1fr; border-left: 1px solid var(--line-strong); }
+.t-cell { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding: 6px var(--space-2) var(--space-2); border-right: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong); }
+.t-cell--wide { grid-column: 1 / -1; }
+.t-cell__k { font-size: 12px; letter-spacing: .04em; color: var(--ink-muted); }
+.t-cell__v { padding-left: var(--space-2); font-size: 15px; color: var(--ink); }
+.t-mug { position: absolute; z-index: 2; margin: 0; padding: 6px 6px 0 22px; display: flex; flex-direction: column; background: var(--surface) repeating-linear-gradient(to bottom, var(--line) 0 1px, transparent 1px 8px) 0 6px / 16px 100% no-repeat; box-shadow: 0 2px 0 var(--paper-shade), 0 8px 18px var(--paper-shade); transform: rotate(1.5deg); }
+.t-mug::before { content: ""; position: absolute; top: 6px; bottom: 30px; left: 4px; width: 12px; background: repeating-linear-gradient(to bottom, var(--ink-muted) 0 1px, transparent 1px 24px); }
+.t-mug__photo { position: relative; flex: 1 1 0; min-height: 0; }
+.t-mug__photo::after { content: ""; position: absolute; inset: -2px; pointer-events: none; background: linear-gradient(135deg, var(--ink-muted) 9px, transparent 9px) top left / 50% 50% no-repeat, linear-gradient(225deg, var(--ink-muted) 9px, transparent 9px) top right / 50% 50% no-repeat, linear-gradient(45deg, var(--ink-muted) 9px, transparent 9px) bottom left / 50% 50% no-repeat, linear-gradient(315deg, var(--ink-muted) 9px, transparent 9px) bottom right / 50% 50% no-repeat; }
+/* 판독지 사진은 흑백으로 인쇄된 것: 단말의 색이 종이 위로 넘어오지 않게 */
+[data-theme="film"] .t-mug img { filter: grayscale(1) contrast(1.05); }
+.t-mug img, .t-mug__photo > * { display: block; width: 100%; height: 100%; object-fit: cover; }
+.t-mug__plate { margin: 4px -6px 0 -22px; padding: 4px 8px; background: var(--reading); color: var(--on-accent); font-family: var(--font-pixel); font-size: 12px; letter-spacing: .06em; text-align: center; }
+.t-numlist { list-style: none; margin: 0; padding: 4px 0 0; counter-reset: n; border: 1px solid var(--line-strong); border-top: none; }
+.t-numlist > li { counter-increment: n; display: grid; grid-template-columns: 30px 1fr; gap: 6px; padding: 9px var(--space-3) 9px 4px; font-family: var(--font-body); font-size: 15px; line-height: 1.6; color: var(--reading); }
+.t-numlist > li::before { content: counter(n) "."; text-align: right; font-family: var(--font-mono); color: var(--ink-muted); }
+.t-numlist > li > * { min-width: 0; }
+/* 재단 메모: 초록 테두리 + 테이프 한 조각 (정부 기록과 겹치는 것이 이중 소속) */
+.t-memo { position: relative; margin: 18px 0 0; padding: 10px 10px var(--space-2); border: 1px solid var(--foundation); background: var(--foundation-wash); }
+.t-memo::before { content: ""; position: absolute; top: -12px; left: 50%; width: 92px; height: 22px; margin-left: -46px; background: url('../assets/textures/tape.png') center / 100% 100% no-repeat; transform: rotate(-2deg); opacity: .55; }
+.t-redact { display: inline-block; padding: 2px 10px; background: var(--redact) repeating-linear-gradient(-45deg, transparent 0 6px, var(--redact-hatch) 6px 8px); color: var(--redact-ink); font-family: var(--font-pixel); font-size: 12px; font-weight: 700; letter-spacing: .3em; }
+/* 도장: 고무인 잉크. 같은 빠짐 무늬를 쓰되 위치를 달리해 반복이 보이지 않게. 잉크는 살짝 번진다 */
+.t-stamp, .t-boxstamp, .t-regstamp, .t-roundstamp, .t-seal, .t-settleseal { -webkit-mask: url('../assets/textures/stamp-mask.png') var(--_mx, 0) var(--_my, 0) / 300px auto; mask: url('../assets/textures/stamp-mask.png') var(--_mx, 0) var(--_my, 0) / 300px auto; filter: drop-shadow(0 0 .6px currentColor); pointer-events: none; }
+/* 사각 고무인: 굵은 바깥 선 + 가는 안쪽 선 */
+.t-stamp { display: inline-flex; flex-direction: column; align-items: center; padding: 8px 16px 6px; border: 3px solid currentColor; outline: 1px solid currentColor; outline-offset: -7px; color: var(--stamp); font-family: var(--font-pixel); font-size: 18px; font-weight: 700; letter-spacing: .25em; line-height: 1.2; transform: rotate(-4deg); }
+.t-stamp--sm { padding: 5px 10px 4px; border-width: 2px; outline-offset: -5px; font-size: 14px; }
+.t-stamp__date { margin-top: 4px; padding-top: 3px; border-top: 1px solid currentColor; font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: .08em; }
+.t-stamp--foundation { --_mx: 90px; color: var(--foundation); transform: rotate(3deg); }
+.t-boxstamp { --_mx: 20px; display: inline-grid; grid-template-columns: 1fr 1fr 1fr; border: 3px solid var(--stamp); color: var(--stamp); font-family: var(--font-mono); font-size: 12px; font-weight: 700; transform: rotate(-3deg); }
+.t-boxstamp > * { padding: 3px 6px; border-top: 1px solid var(--stamp); border-right: 1px solid var(--stamp); }
+.t-boxstamp > *:nth-child(3n) { border-right: none; }
+.t-boxstamp__title { grid-column: 1 / -1; font-family: var(--font-pixel); letter-spacing: .2em; }
+.t-boxstamp > .t-boxstamp__title, .t-boxstamp > .t-boxstamp__sign { border-right: none; }
+.t-boxstamp > .t-boxstamp__title { border-top: none; }
+.t-boxstamp__sign { grid-column: 1 / -1; height: 26px; }
+.t-boxstamp__sign svg { width: 90px; height: 24px; }
+.t-regstamp { --_mx: 40px; --_my: 20px; display: inline-block; padding: 4px; border: 3px solid currentColor; color: var(--stamp); transform: rotate(-2deg); }
+.t-regstamp--foundation { color: var(--foundation); }
+.t-regstamp span { display: block; padding: 4px 14px; border: 1px solid currentColor; font-family: var(--font-pixel); font-size: 16px; font-weight: 700; letter-spacing: .2em; }
+/* 원형 고무인: 둘레 글자(textPath) + 가운데 한 마디 */
+.t-roundstamp { --_mx: 120px; --_my: 40px; display: inline-block; width: 112px; height: 112px; color: var(--stamp); transform: rotate(-12deg); }
+.t-roundstamp--foundation { color: var(--foundation); }
+.t-roundstamp circle { fill: none; stroke: currentColor; }
+.t-roundstamp text { fill: currentColor; font-family: var(--font-pixel); font-weight: 700; }
+/* 직인: 네 글자를 두 줄로 꽉 채운 사각 관인 */
+.t-seal { --_mx: 200px; --_my: 90px; display: inline-grid; grid-template-columns: 1fr 1fr; place-items: center; width: 64px; height: 64px; box-sizing: border-box; padding: 4px; border: 4px solid currentColor; border-radius: 3px; color: var(--stamp); font-family: var(--font-pixel); font-size: 20px; font-weight: 700; line-height: 1; transform: rotate(-4deg); }
+.t-seal > span { display: block; }
+.t-seal--wide { --_mx: 60px; --_my: 160px; grid-template-columns: repeat(3, 1fr); width: 96px; height: 70px; padding: 5px 6px; outline: 1px solid currentColor; outline-offset: -8px; font-size: 22px; }
+/* 문장: 인쇄된 기관 표시(도장이 아니라 서식에 박힌 것). 정부는 기하 문장, 재단은 서양톱풀 */
+.t-mark { width: 56px; height: 56px; flex-shrink: 0; color: var(--ink); }
+.t-mark--foundation { color: var(--foundation); }
+.t-mark--sm { width: 32px; height: 32px; }
+/* 정착지 도장: 피난민이 깎아 만든 타원 나무 도장. 재건 단계마다 가운데 그림이 바뀐다 */
+.t-settleseal { --_mx: 230px; --_my: 30px; display: inline-block; width: 144px; height: 110px; color: var(--reading); transform: rotate(-3deg); }
+.t-settleseal text { font-family: var(--font-pixel); font-weight: 700; }
+.t-settleseal--sm { width: 120px; height: 92px; }
+.t-sign { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+/* 정부 공문 */
+.t-notice { position: relative; overflow: hidden; background: var(--surface-raised) url('../assets/textures/paper-gov.webp') 0 0 / 256px 256px; border: 1px solid var(--line-strong); box-shadow: 0 2px 0 var(--paper-shade), 0 8px 18px var(--paper-shade); color: var(--ink); font-family: var(--font-mono); }
+.t-notice__top { display: flex; justify-content: space-between; padding: var(--space-2) var(--space-3); border-bottom: 2px solid var(--ink); font-family: var(--font-pixel); font-size: 12px; color: var(--ink-muted); }
+.t-notice__title { margin: 0; padding: var(--space-3) var(--space-3) var(--space-2); font-family: var(--font-pixel); font-size: 20px; font-weight: 700; letter-spacing: .35em; text-align: center; }
+.t-stain { position: absolute; width: 120px; height: 120px; pointer-events: none; opacity: .5; background: url('../assets/textures/ring-stain.png') center / contain no-repeat; }
+.t-tape { display: inline-block; padding: 3px 10px; border-radius: 2px; background: var(--tape); color: var(--tape-ink); font-family: var(--font-pixel); font-size: 12px; letter-spacing: .18em; box-shadow: inset 0 1px 0 var(--tape-shine), var(--shadow-key); }
+
+/* ── 15. 동작 줄이기 ── */
+@media (prefers-reduced-motion: reduce) {
+  .t-glow, .t-readout__num { text-shadow: none; }
+  .t-app__screen::after { display: none; }
+  .t-vital__wave { filter: none; }
+  .t-navbar__item[aria-current="page"]::before { box-shadow: none; }
+  .t-btn:active { transform: none; }
+  .t-btn[aria-busy="true"]::before { animation: none; }
+  .t-vital__track, .t-vital__beat, .t-feed__rec::before, .t-banner::before { animation: none; }
+  .t-banner::before { display: none; }
+  .t-vital__num, .t-feed__sec { animation-play-state: paused; }
+  .t-readout--roll, .t-scale__hit, .t-roll-verdict .t-tune__text, .t-roll-verdict .t-tune__bars i, .t-roll-verdict::after, .t-readout__quip, .t-readout__flash, .t-readout--fumble { animation: none; }
+  .t-readout__flash { display: none; }
+  .t-crit-wave path { animation: none; stroke-dashoffset: 0; opacity: .35; }
+  .t-readout--fumble .t-roll-verdict::after { opacity: .3; }
+  .t-flag { transition: none; }
+  .t-dialog, .t-toast, .t-writ, .t-writ__slot .t-roundstamp { animation: none; }
+  .t-skel::after, .t-loading__text::after { animation: none; }
+  .t-switch__px--mid { animation: none; opacity: 0; }
+}
+.t-chat__face--empty { display: block; box-sizing: border-box; background: none; border: 1px dashed var(--line-strong); clip-path: none; }

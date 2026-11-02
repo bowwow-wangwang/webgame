@@ -1,0 +1,59 @@
+/* 앱 틀 배치. 부품의 모양은 system.css(디자인 시스템)에 있고, 여기는 화면을 채우는 배치만 둔다. */
+html, body, #root { height: 100%; margin: 0; }
+body { background: #06110A; }
+a { color: inherit; }
+button, input, select, textarea { font-family: inherit; }
+
+.app-root { height: 100dvh; min-height: 0; }
+.app-root .t-app__screen { min-height: 0; }
+.app-formwrap { display: flex; flex-direction: column; flex-grow: 1; min-height: 0; }
+.app-scroll { display: flex; flex-direction: column; gap: 18px; padding: 16px 14px 24px; }
+
+.app-header { position: relative; z-index: 6; display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.app-header__back { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex-shrink: 0; }
+.app-header__back:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.app-header__spacer { width: 8px; }
+.app-header__titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex-grow: 1; }
+.app-header__title { margin: 0; font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* 알림 띠: 엄지가 닿는 아래쪽, 조작 막대 위 */
+.app-toasts { position: fixed; left: 50%; bottom: 96px; z-index: 50; width: min(440px, calc(100% - 24px)); transform: translateX(-50%); }
+
+/* 단계 표시의 끝난 단계: 눌러서 돌아가는 버튼 (PC 세로 목록) */
+.t-steps__go { all: unset; display: contents; cursor: pointer; }
+.t-steps--side li:has(.t-steps__go):hover { background: var(--surface-raised); }
+.t-steps--side li:has(.t-steps__go:focus-visible) { outline: 2px solid var(--focus); outline-offset: -2px; }
+
+.app-alloc-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; }
+
+.app-twocol { display: grid; gap: 16px; }
+
+/* ── PC 배치: 960px부터 (src/config/layout.ts와 같은 값) ── */
+.app-desk { display: grid; grid-template-columns: minmax(0, 1fr); flex-grow: 1; min-height: 0; }
+.app-desk > * { min-width: 0; min-height: 0; }
+.app-desk--left { grid-template-columns: 288px minmax(0, 1fr); }
+.app-desk--right { grid-template-columns: minmax(0, 1fr) 420px; }
+.app-desk--left.app-desk--right { grid-template-columns: 288px minmax(0, 1fr) 420px; }
+.app-desk__center { display: flex; flex-direction: column; min-height: 0; }
+.app-desk__right { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; border-left: 1px solid var(--line); }
+.app-desk .app-scroll { padding: 24px 40px 28px; }
+.app-desk .t-formbar { padding: 12px 40px; justify-content: flex-end; }
+.app-desk .t-formbar .t-btn--primary { flex-grow: 0; min-width: 280px; }
+.app-desk--narrow .app-scroll > * { width: 100%; max-width: 640px; }
+.app-brand { display: flex; flex-direction: column; gap: 4px; padding: 20px var(--space-4) 14px; }
+.app-mine { display: flex; flex-direction: column; gap: 4px; margin-top: auto; padding: 12px var(--space-4); border-top: 1px solid var(--line); }
+.app-mine__row { margin: 0; min-height: 32px; display: flex; align-items: center; font-size: 14px; }
+@media (max-width: 1180px) { .app-desk--right, .app-desk--left.app-desk--right { grid-template-columns: 260px minmax(0, 1fr) 340px; } .app-desk--right:not(.app-desk--left) { grid-template-columns: minmax(0, 1fr) 340px; } .app-desk .app-scroll { padding: 20px 24px; } }
+
+/* 로그인과 가입: 왼쪽 넓은 소개, 오른쪽 폼 */
+.app-desk.app-desk--auth { grid-template-columns: minmax(0, 1fr) 520px; }
+.app-desk--auth .app-scroll { padding: 24px 40px; }
+.app-intro { display: flex; flex-direction: column; gap: 18px; padding: 40px 48px 20px; border-right: 1px solid var(--line); overflow-y: auto; }
+.app-intro__title { margin: 0; font-size: 44px; font-weight: 700; }
+.app-intro .t-reading { margin: 0; max-width: 34em; }
+.app-legal { display: flex; flex-wrap: wrap; gap: 0 4px; }
+
+/* 탭 모양 링크의 현재 위치 (로그인/가입 전환) */
+.t-tab[aria-current="page"] { --_bc: var(--accent); --_bg: var(--accent); color: var(--on-accent); font-weight: 700; }
+.t-tab { text-decoration: none; }
+.app-statement { margin: 0; padding: 8px 10px; border: 1px solid var(--line-strong); border-top: none; font-size: 14px; white-space: pre-wrap; }
