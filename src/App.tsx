@@ -8,6 +8,7 @@ import { JoinScreen, LoginScreen } from './screens/Auth';
 import { CreateFlow } from './screens/create/CreateFlow';
 import { InstallScreen, RegisteredScreen, SendIndex, SendScreen, SentScreen } from './screens/AfterCreate';
 import { HomeScreen, PendingScreen } from './screens/Home';
+import { DmScreen, PlaceScreen, TalkScreen } from './screens/talk/TalkScreens';
 
 function Booting() {
   return (
@@ -56,7 +57,9 @@ const router = createHashRouter([
       { path: '/send/:id', element: <RequireSession><SendScreen /></RequireSession> },
       { path: '/sent/:id', element: <RequireSession><SentScreen /></RequireSession> },
       { path: '/home', element: <RequireSession><HomeScreen /></RequireSession> },
-      { path: '/place/:id', element: <RequireSession><PendingScreen title="통신" ch="CH.02" what="장소 채널과 대화" /></RequireSession> },
+      { path: '/talk', element: <RequireSession><TalkScreen /></RequireSession> },
+      { path: '/place/:id', element: <RequireSession><PlaceScreen /></RequireSession> },
+      { path: '/dm/:id', element: <RequireSession><DmScreen /></RequireSession> },
       { path: '/record', element: <RequireSession><PendingScreen title="기록" ch="CH.04" what="판독지" /></RequireSession> },
       { path: '/settings', element: <RequireSession><PendingScreen title="단말" ch="CH.05" what="단말 설정과 알림 설정" /></RequireSession> },
       { path: '*', element: <Navigate to="/" replace /> },

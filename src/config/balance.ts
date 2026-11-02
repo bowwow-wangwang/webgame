@@ -9,6 +9,8 @@ export const BALANCE = {
   imageMaxBytes: 500_000,
   imageLongEdge: 1024,
   sendHours: [1, 4, 8] as const,
+  // 다른 캐릭터로 잘못 보낸 말을 바꾸거나 지울 수 있는 시간.
+  messageFixMinutes: 2,
   // 이 시간에는 알림을 보내지 않고 아침에 묶어 보낸다 (한국 시간).
   quietHours: { start: '23:00', end: '08:00' },
 } as const;
@@ -22,5 +24,6 @@ export const TEXT_LIMITS = {
   ability: 500,
   imageAlt: 100,
   qnaAnswer: 60,
+  message: 1000,
   passwordMin: 8,
 } as const;

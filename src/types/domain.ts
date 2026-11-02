@@ -157,3 +157,74 @@ export interface Place {
 }
 
 export type Result<T> = { ok: true; value: T } | { ok: false; message: string; field?: string };
+
+// ── 대화 ──
+
+/** 대화에 나오는 캐릭터. 다른 사람의 캐릭터는 이름, 역할, 대표 사진만 안다. */
+export interface Persona {
+  id: string;
+  name: string;
+  role: Role;
+  portraitUrl: string | null;
+  /** 내 계정의 캐릭터인가 (자관). */
+  mine: boolean;
+}
+
+export type StayStatus = '쉬는 중' | '근무 중' | '다녀오는 중' | '출동 중';
+
+export interface Staying {
+  persona: Persona;
+  status: StayStatus;
+  /** 아직 대화해 본 적 없는 사람 (다른 계정만). 마주칠 기회를 앞에 둔다. */
+  newToMe: boolean;
+}
+
+export type RoomKind = 'place' | 'dm';
+
+export interface Room {
+  id: string;
+  kind: RoomKind;
+  name: string;
+  /** 장소 채널의 감시 화면 꼬리표 (CAM 03, 새벽뜰 등). */
+  cam?: string;
+  imageUrl?: string;
+  imageAlt?: string;
+  /** 오늘 메뉴 같은 그날의 한 줄. */
+  todayLine?: string;
+  staying: Staying[];
+  /** 1:1 방이면 상대와 나의 캐릭터. */
+  members?: Persona[];
+  lastLine?: { name: string; text: string; at: string };
+}
+
+export type MessageKind = 'say' | 'owner' | 'system' | 'event';
+
+export interface Message {
+  id: string;
+  roomId: string;
+  kind: MessageKind;
+  speaker?: Persona;
+  text: string;
+  at: string;
+  /** 이 시각까지 내 말을 다른 캐릭터로 바꾸거나 지울 수 있다. */
+  editableUntil?: string;
+}
+
+export interface InboxItem {
+  id: string;
+  roomId: string;
+  from: Persona;
+  to: Persona;
+  where: string;
+  at: string;
+  preview: string;
+}
+
+export type ReportReason = 'harm' | 'contact' | 'harass' | 'other';
+
+export const REPORT_REASON_LABEL: Record<ReportReason, string> = {
+  harm: '수위를 넘는 내용 (성적이거나 잔혹함)',
+  contact: '외부 연락처를 묻거나 알려 줌',
+  harass: '괴롭힘이나 멸칭으로 공격함',
+  other: '그 밖의 문제',
+};

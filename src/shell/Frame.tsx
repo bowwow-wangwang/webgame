@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
-import { Link, NavLink } from 'react-router';
+import { Link, NavLink, useLocation } from 'react-router';
 import { CEASEFIRE_YEAR_AT_OPEN, GAME_TITLE } from '../config/game';
 import { useIsDesktop } from '../lib/useIsDesktop';
 import { dateKST, clockKST } from '../lib/time';
-import { useSession } from '../lib/session';
+import { TodayList } from './Today';
 import { Px } from '../ui/Px';
 import type { PixelIconName } from '../ui/pixelIcons';
 
@@ -19,19 +19,25 @@ function Plate({ right }: { right: string }) {
   );
 }
 
-const MENU: { to: string; ch: string; label: string; icon: PixelIconName }[] = [
+const MENU: { to: string; ch: string; label: string; icon: PixelIconName; also?: string[] }[] = [
   { to: '/home', ch: '1', label: '상황판', icon: 'monitor' },
-  { to: '/place/lounge', ch: '2', label: '통신', icon: 'radio' },
-  { to: '/send', ch: '3', label: '보내두기', icon: 'compass' },
+  { to: '/talk', ch: '2', label: '통신', icon: 'radio', also: ['/place/', '/dm/'] },
+  { to: '/send', ch: '3', label: '보내두기', icon: 'compass', also: ['/sent/'] },
   { to: '/record', ch: '4', label: '기록', icon: 'folder' },
   { to: '/settings', ch: '5', label: '단말', icon: 'gear' },
 ];
 
+function useCurrentMenu() {
+  const { pathname } = useLocation();
+  return MENU.find((m) => pathname === m.to || pathname.startsWith(`${m.to}/`) || m.also?.some((a) => pathname.startsWith(a)))?.to;
+}
+
 function NavBar() {
+  const cur = useCurrentMenu();
   return (
     <nav className="t-navbar" aria-label="주 메뉴">
       {MENU.map((m) => (
-        <NavLink key={m.to} to={m.to} className="t-navbar__item">
+        <NavLink key={m.to} to={m.to} className="t-navbar__item" aria-current={cur === m.to ? 'page' : undefined}>
           <span className="t-navbar__dot" />
           <Px name={m.icon} small />
           <span className="t-navbar__label">{m.label}</span>
@@ -42,10 +48,11 @@ function NavBar() {
 }
 
 function SideNav() {
+  const cur = useCurrentMenu();
   return (
     <nav className="t-sidenav" aria-label="주 메뉴">
       {MENU.map((m) => (
-        <NavLink key={m.to} to={m.to} className="t-sidenav__item">
+        <NavLink key={m.to} to={m.to} className="t-sidenav__item" aria-current={cur === m.to ? 'page' : undefined}>
           <span className="t-sidenav__key" aria-hidden="true">
             [{m.ch}]
           </span>
@@ -116,6 +123,8 @@ export function Frame({
   scrollLabel,
   onSubmit,
   deskClass = '',
+  flush,
+  mobileNav,
 }: {
   plate: string;
   header?: ReactNode;
@@ -130,13 +139,16 @@ export function Frame({
   onSubmit?: () => void;
   /** PC 배치의 칸 나누기를 화면이 바꿀 때 (예: 로그인 화면의 넓은 소개 칸). */
   deskClass?: string;
+  /** 대화처럼 본문이 칸 끝까지 차는 화면: 안쪽 여백을 없앤다. */
+  flush?: boolean;
+  /** 모바일 아래 화면 선택 줄. 기본은 게임 안 화면이면 보인다 (대화방은 입력줄을 두려고 숨긴다). */
+  mobileNav?: boolean;
 }) {
   const desktop = useIsDesktop();
-  const { characters } = useSession();
 
   const inner = (
     <>
-      <div className="t-scroll app-scroll" tabIndex={0} aria-label={scrollLabel}>
+      <div className={flush ? 't-scroll app-scroll app-scroll--flush' : 't-scroll app-scroll'} tabIndex={0} aria-label={scrollLabel}>
         {children}
       </div>
       {bar}
@@ -167,7 +179,7 @@ export function Frame({
       <div className="t-app t-screen app-root" data-theme="terminal">
         <Plate right={plate} />
         <main className="t-app__screen">{body}</main>
-        {ingame && <NavBar />}
+        {(mobileNav ?? ingame) && <NavBar />}
       </div>
     );
   }
@@ -185,13 +197,9 @@ export function Frame({
         <SideNav />
         <section aria-labelledby="mine-h" className="app-mine">
           <h2 id="mine-h" className="t-label">
-            내 캐릭터
+            내 캐릭터 오늘
           </h2>
-          {characters.map((c) => (
-            <p key={c.id} className="app-mine__row">
-              {c.name}
-            </p>
-          ))}
+          <TodayList compact />
         </section>
       </aside>
     ) : null);
