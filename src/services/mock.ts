@@ -13,14 +13,17 @@ import {
   type Session,
   type Settlement,
 } from '../types/domain';
-import type { GameService, TalkKeys } from './types';
+import type { DossierKeys, GameService, TalkKeys } from './types';
 import { josa } from '../lib/josa';
+
+// 판독지에 쓰는 설정 글도 같이 둔다 (화면용 Character에는 없는 칸).
+export type StoredChar = Character & { ownerId: string; look: string; personality: string; ability: string; statsHidden?: boolean };
 
 interface Store {
   accounts: { id: string; email: string; password: string }[];
   session: Session | null;
   draft: CharacterDraft | null;
-  characters: (Character & { ownerId: string })[];
+  characters: StoredChar[];
   sends: ActiveSend[];
   usedCodes: string[];
   nextRegNo: number;
@@ -118,7 +121,7 @@ function mine() {
   return store.characters.filter((c) => c.ownerId === store.session?.accountId);
 }
 
-export const mockService: Omit<GameService, TalkKeys> = {
+export const mockService: Omit<GameService, TalkKeys | DossierKeys> = {
   async getSession() {
     return wait(store.session, 60);
   },
@@ -187,7 +190,7 @@ export const mockService: Omit<GameService, TalkKeys> = {
 
     const regNo = d.role === 'ability' ? `A-${String(store.nextRegNo++).padStart(4, '0')}` : null;
     const portrait = d.images[0];
-    const c: Character & { ownerId: string } = {
+    const c: StoredChar = {
       id: uid(),
       ownerId: store.session.accountId,
       role: d.role,
@@ -197,6 +200,9 @@ export const mockService: Omit<GameService, TalkKeys> = {
       originSettlement: SETTLEMENTS.find((s) => s.id === d.originSettlementId) ?? null,
       stats: d.stats,
       past: d.past,
+      look: d.look,
+      personality: d.personality,
+      ability: d.role === 'ability' ? d.ability : '',
       portraitUrl: portrait?.url ?? null,
       portraitAlt: portrait?.alt || `${d.name.trim()}의 그림`,
       createdAt: new Date().toISOString(),
@@ -268,4 +274,5 @@ export const mockService: Omit<GameService, TalkKeys> = {
 export const mockStore = {
   mine: () => mine(),
   sends: () => store.sends,
+  save: () => save(),
 };

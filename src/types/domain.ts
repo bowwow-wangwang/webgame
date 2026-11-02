@@ -228,3 +228,99 @@ export const REPORT_REASON_LABEL: Record<ReportReason, string> = {
   harass: '괴롭힘이나 멸칭으로 공격함',
   other: '그 밖의 문제',
 };
+
+// ── 판독지, 관계, 명부 ──
+
+export type RelKind = 'lost' | 'settlement' | 'care' | 'trip' | 'free';
+
+export const REL_LABEL: Record<RelKind, string> = {
+  lost: '잃어버린 인연',
+  settlement: '같은 정착지 출신',
+  care: '담당',
+  trip: '여행에서 만난 사이',
+  free: '자유 입력',
+};
+
+export const REL_DESC: Record<RelKind, string> = {
+  lost: '발현 이전에 서로 알던 사이. 기억은 없지만 감정이 남았어요.',
+  settlement: '같은 정착지에서 왔어요.',
+  care: '능력자와 재단 직원의 고정 파트너. 재단 직원이 판독지 재단 메모를 써요.',
+  trip: '길 위에서 만났어요.',
+  free: '두 주인이 관계 이름을 직접 적어요.',
+};
+
+export interface Relation {
+  id: string;
+  kind: RelKind;
+  /** 자유 입력이면 관계 이름, 아니면 두 주인이 적은 한 줄. */
+  note: string;
+  other: Persona;
+}
+
+export interface RelationRequest {
+  id: string;
+  from: Persona;
+  to: Persona;
+  kind: RelKind;
+  note: string;
+  at: string;
+}
+
+export interface ChoiceLine {
+  id: string;
+  date: string;
+  text: string;
+  gov?: boolean;
+  hidden: boolean;
+}
+
+export interface QnaLine {
+  id: string;
+  question: string;
+  answer: string;
+}
+
+export interface Dossier {
+  persona: Persona;
+  registrationNo: string | null;
+  origin: Settlement | null;
+  memoryLoss: MemoryLoss | null;
+  ability: string;
+  past: string;
+  look: string;
+  personality: string;
+  /** 주인이 숫자를 숨겼으면 null (다른 사람에게만). */
+  stats: Stats | null;
+  statsHidden: boolean;
+  /** 지금 상태 한 줄 (출동 중, 근무 중 등). */
+  status: string | null;
+  /** 능력자만: 최근 7일 오염. */
+  contamination: number[] | null;
+  choices: ChoiceLine[];
+  qna: QnaLine[];
+  /** 담당 재단 직원이 쓴 메모 (능력자만). */
+  memo: { by: string; text: string } | null;
+  relations: Relation[];
+  createdAt: string;
+}
+
+export type ActivityKind = 'dispatch' | 'shift' | 'outing' | 'choice' | 'register';
+
+export interface Activity {
+  id: string;
+  kind: ActivityKind;
+  at: string;
+  title: string;
+  rows: [string, string][];
+  body?: string;
+  meta: string[];
+  form?: string;
+  running?: boolean;
+}
+
+export interface DirectoryEntry {
+  persona: Persona;
+  origin: string | null;
+  /** 아직 대화해 본 적 없는 사람 (다른 계정만). */
+  newToMe: boolean;
+}

@@ -1,5 +1,11 @@
 import type {
   ActiveSend,
+  Activity,
+  DirectoryEntry,
+  Dossier,
+  RelationRequest,
+  RelKind,
+  Role,
   InboxItem,
   Message,
   Persona,
@@ -69,6 +75,19 @@ export interface GameService {
   /** 방마다 마지막으로 말한 내 캐릭터. 다시 열면 그 캐릭터로 시작한다. */
   getLastSpeaker(roomId: string): Promise<string | null>;
   setLastSpeaker(roomId: string, characterId: string): Promise<void>;
+
+  // ── 판독지, 관계, 명부 ──
+  /** 남의 판독지면 주인이 숨긴 칸(측정치, 숨긴 선택 기록)은 서버가 빼고 준다. */
+  getDossier(characterId: string): Promise<Dossier | null>;
+  setStatsHidden(characterId: string, hidden: boolean): Promise<Result<void>>;
+  setChoiceHidden(characterId: string, choiceId: string, hidden: boolean): Promise<Result<void>>;
+  listActivity(characterId: string): Promise<Activity[]>;
+  /** 이름으로 찾기와 역할 거르기만. 능력치나 인기로 줄 세우지 않는다. */
+  listDirectory(q: { text: string; role: Role | null }): Promise<DirectoryEntry[]>;
+  /** 같은 계정끼리(자관)는 동의 없이 바로 이어진다 (instant). */
+  requestRelation(input: { fromId: string; toId: string; kind: RelKind; note: string }): Promise<Result<{ instant: boolean }>>;
+  listRelationRequests(): Promise<RelationRequest[]>;
+  answerRelationRequest(id: string, accept: boolean): Promise<Result<void>>;
 }
 
 /** 대화 쪽 호출 이름. 가짜 구현을 두 파일로 나눠 두려고 쓴다. */
@@ -87,3 +106,14 @@ export type TalkKeys =
   | 'getPersona'
   | 'getLastSpeaker'
   | 'setLastSpeaker';
+
+/** 판독지·관계·명부 쪽 호출 이름. */
+export type DossierKeys =
+  | 'getDossier'
+  | 'setStatsHidden'
+  | 'setChoiceHidden'
+  | 'listActivity'
+  | 'listDirectory'
+  | 'requestRelation'
+  | 'listRelationRequests'
+  | 'answerRelationRequest';

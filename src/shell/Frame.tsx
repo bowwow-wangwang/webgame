@@ -23,7 +23,7 @@ const MENU: { to: string; ch: string; label: string; icon: PixelIconName; also?:
   { to: '/home', ch: '1', label: '상황판', icon: 'monitor' },
   { to: '/talk', ch: '2', label: '통신', icon: 'radio', also: ['/place/', '/dm/'] },
   { to: '/send', ch: '3', label: '보내두기', icon: 'compass', also: ['/sent/'] },
-  { to: '/record', ch: '4', label: '기록', icon: 'folder' },
+  { to: '/record', ch: '4', label: '기록', icon: 'folder', also: ['/dossier/', '/directory'] },
   { to: '/settings', ch: '5', label: '단말', icon: 'gear' },
 ];
 
