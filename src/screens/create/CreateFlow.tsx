@@ -233,7 +233,7 @@ export function CreateFlow() {
             <p className="t-field__help" style={{ margin: 0 }}>
               수치가 곧 성공할 확률이에요. 55면 100번에 55번쯤 성공해요. 등록한 뒤 한 번은 무료로 다시 나눌 수 있어요.
             </p>
-            <Alloc stats={d.stats} role={d.role} onChange={(stats) => update({ stats })} columns={desktop ? 2 : 1} />
+            <Alloc stats={d.stats} role={d.role} onChange={(stats) => update({ stats })} columns={1} />
             {tried && left !== 0 && (
               <p className="t-field__error" role="alert">
                 {left}포인트가 남았어요. 모두 나눠 주세요.

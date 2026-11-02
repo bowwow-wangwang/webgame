@@ -24,7 +24,8 @@ button, input, select, textarea { font-family: inherit; }
 .t-steps--side li:has(.t-steps__go):hover { background: var(--surface-raised); }
 .t-steps--side li:has(.t-steps__go:focus-visible) { outline: 2px solid var(--focus); outline-offset: -2px; }
 
-.app-alloc-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; }
+/* 본문 칸이 좁으면(작은 노트북에서 세 칸일 때) 한 단으로 돌아간다 */
+.app-alloc-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0 32px; }
 
 .app-twocol { display: grid; gap: 16px; }
 
@@ -37,13 +38,33 @@ button, input, select, textarea { font-family: inherit; }
 .app-desk__center { display: flex; flex-direction: column; min-height: 0; }
 .app-desk__right { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; border-left: 1px solid var(--line); }
 .app-desk .app-scroll { padding: 24px 40px 28px; }
+/* 능력치 막대는 너무 길면 눈으로 비교하기 어렵다 */
+.app-desk .t-alloc { max-width: 680px; }
 .app-desk .t-formbar { padding: 12px 40px; justify-content: flex-end; }
 .app-desk .t-formbar .t-btn--primary { flex-grow: 0; min-width: 280px; }
 .app-desk--narrow .app-scroll > * { width: 100%; max-width: 640px; }
 .app-brand { display: flex; flex-direction: column; gap: 4px; padding: 20px var(--space-4) 14px; }
 .app-mine { display: flex; flex-direction: column; gap: 4px; margin-top: auto; padding: 12px var(--space-4); border-top: 1px solid var(--line); }
 .app-mine__row { margin: 0; min-height: 32px; display: flex; align-items: center; font-size: 14px; }
-@media (max-width: 1180px) { .app-desk--right, .app-desk--left.app-desk--right { grid-template-columns: 260px minmax(0, 1fr) 340px; } .app-desk--right:not(.app-desk--left) { grid-template-columns: minmax(0, 1fr) 340px; } .app-desk .app-scroll { padding: 20px 24px; } }
+/* 작은 노트북(960~1279px): 양옆 칸을 줄여 본문 칸을 넓힌다 */
+@media (max-width: 1279px) {
+  .app-desk--left { grid-template-columns: 240px minmax(0, 1fr); }
+  .app-desk--right { grid-template-columns: minmax(0, 1fr) 320px; }
+  .app-desk--left.app-desk--right { grid-template-columns: 240px minmax(0, 1fr) 320px; }
+  .app-desk.app-desk--auth { grid-template-columns: minmax(0, 1fr) 460px; }
+  .app-desk .app-scroll { padding: 20px 24px; }
+  .app-desk .t-formbar { padding: 12px 24px; }
+  .app-intro { padding: 32px 32px 16px; }
+}
+/* 조작 막대: 주요 버튼이 넓어도 "이전"이 44px 아래로 눌리지 않게 */
+.t-formbar .t-btn--outline { flex-shrink: 0; min-width: 64px; }
+.app-desk .t-formbar .t-btn--primary { min-width: min(280px, 100%); flex-shrink: 1; }
+/* 태블릿 세로(600~959px): 모바일 배치를 쓰되 글과 칸이 끝까지 늘어나지 않게 가운데 640px로 모은다 */
+@media (min-width: 600px) and (max-width: 959px) {
+  .app-root .app-scroll { padding-inline: max(14px, calc((100% - 640px) / 2)); }
+  .app-root .t-formbar { padding-inline: max(12px, calc((100% - 640px) / 2)); }
+  .app-root .app-header { padding-inline: max(8px, calc((100% - 656px) / 2)); }
+}
 
 /* 로그인과 가입: 왼쪽 넓은 소개, 오른쪽 폼 */
 .app-desk.app-desk--auth { grid-template-columns: minmax(0, 1fr) 520px; }
