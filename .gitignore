@@ -1,0 +1,19 @@
+# 비밀값: 절대 커밋하지 않는다
+.env
+.env.*
+!.env.example
+supabase/.temp/
+supabase/.branches/
+
+# 빌드와 의존성
+node_modules/
+dist/
+.vite/
+
+# 편집기와 OS
+.DS_Store
+.vscode/
+.idea/
+
+# 설정집에서 실수로 내보낸 비밀 설정 탭 방지
+docs/content/*비밀*
