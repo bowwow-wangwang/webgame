@@ -9,6 +9,7 @@ import { CreateFlow } from './screens/create/CreateFlow';
 import { InstallScreen, RegisteredScreen, SendIndex, SendScreen, SentScreen } from './screens/AfterCreate';
 import { HomeScreen, PendingScreen } from './screens/Home';
 import { DmScreen, PlaceScreen, TalkScreen } from './screens/talk/TalkScreens';
+import { DirectoryScreen, DossierScreen, RecordScreen } from './screens/dossier/DossierScreens';
 
 function Booting() {
   return (
@@ -60,7 +61,10 @@ const router = createHashRouter([
       { path: '/talk', element: <RequireSession><TalkScreen /></RequireSession> },
       { path: '/place/:id', element: <RequireSession><PlaceScreen /></RequireSession> },
       { path: '/dm/:id', element: <RequireSession><DmScreen /></RequireSession> },
-      { path: '/record', element: <RequireSession><PendingScreen title="기록" ch="CH.04" what="판독지" /></RequireSession> },
+      { path: '/record', element: <RequireSession><RecordScreen /></RequireSession> },
+      { path: '/directory', element: <RequireSession><DirectoryScreen /></RequireSession> },
+      { path: '/dossier/:id', element: <RequireSession><DossierScreen key="p1" page={1} /></RequireSession> },
+      { path: '/dossier/:id/log', element: <RequireSession><DossierScreen key="p2" page={2} /></RequireSession> },
       { path: '/settings', element: <RequireSession><PendingScreen title="단말" ch="CH.05" what="단말 설정과 알림 설정" /></RequireSession> },
       { path: '*', element: <Navigate to="/" replace /> },
     ],
