@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { TEXT_LIMITS } from '../config/balance';
 import { GAME_TITLE } from '../config/game';
@@ -9,6 +9,7 @@ import { Frame, FormBar, ScreenHeader } from '../shell/Frame';
 import { Agree } from '../ui/Agree';
 import { TextField } from '../ui/Field';
 import { Vital } from '../ui/Vital';
+import { Sheet } from '../ui/Sheet';
 import { useToast } from '../ui/Toast';
 import zoneImg from '../assets/sample/zone-evron-wide.webp';
 
@@ -17,29 +18,17 @@ const LEGAL_TITLE: Record<LegalKind, string> = { terms: '이용약관', privacy:
 
 /** 약관 읽기: 새 창이 아니라 같은 화면 위에 열리고, 닫으면 쓰던 칸이 그대로다. 글은 운영자가 채운다. */
 function LegalSheet({ kind, onClose }: { kind: LegalKind; onClose: () => void }) {
-  useEffect(() => {
-    const k = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-    window.addEventListener('keydown', k);
-    return () => window.removeEventListener('keydown', k);
-  }, [onClose]);
   return (
-    <div className="t-dialog-backdrop" onClick={onClose}>
-      <div className="t-dialog" role="dialog" aria-modal="true" aria-labelledby="legal-t" onClick={(e) => e.stopPropagation()}>
-        <div className="t-dialog__body">
-          <h2 id="legal-t" className="t-dialog__title">
-            {LEGAL_TITLE[kind]}
-          </h2>
-          <p className="t-reading" style={{ margin: 0 }}>
-            [{LEGAL_TITLE[kind]} 본문. 운영자가 채운다.]
-          </p>
-          <div className="t-dialog__actions">
-            <button className="t-btn t-btn--solid" type="button" autoFocus onClick={onClose}>
-              닫기
-            </button>
-          </div>
-        </div>
+    <Sheet title={LEGAL_TITLE[kind]} onClose={onClose} labelId="legal-t">
+      <p className="t-reading" style={{ margin: 0 }}>
+        [{LEGAL_TITLE[kind]} 본문. 운영자가 채운다.]
+      </p>
+      <div className="t-dialog__actions" style={{ gridTemplateColumns: '1fr' }}>
+        <button className="t-btn t-btn--solid" type="button" onClick={onClose}>
+          닫기
+        </button>
       </div>
-    </div>
+    </Sheet>
   );
 }
 

@@ -1,5 +1,10 @@
 import type {
   ActiveSend,
+  InboxItem,
+  Message,
+  Persona,
+  ReportReason,
+  Room,
   Character,
   CharacterDraft,
   Place,
@@ -42,4 +47,43 @@ export interface GameService {
 
   /** 지금 가장 많이 머무는 장소 채널. 처음 안내의 마지막에 보여 준다. */
   getBusiestPlace(): Promise<Place | null>;
+  listMySends(): Promise<ActiveSend[]>;
+
+  // ── 대화 ──
+  /** 지금 열려 있는 장소 채널(사람 수에 맞춰 서버가 연다)과 내 1:1 방. */
+  listRooms(): Promise<Room[]>;
+  getRoom(id: string): Promise<Room | null>;
+  /** 차단한 사람의 말은 서버가 빼고 준다. */
+  listMessages(roomId: string): Promise<Message[]>;
+  sendMessage(input: { roomId: string; speakerId: string; text: string; owner: boolean }): Promise<Result<Message>>;
+  /** 보낸 직후(2분) 다른 캐릭터로 잘못 보낸 말을 바로잡는다. */
+  changeSpeaker(messageId: string, speakerId: string): Promise<Result<Message>>;
+  deleteMessage(messageId: string): Promise<Result<void>>;
+  report(input: { messageId?: string; personaId: string; reason: ReportReason; memo: string }): Promise<Result<void>>;
+  block(personaId: string): Promise<Result<void>>;
+  unblock(personaId: string): Promise<Result<void>>;
+  listInbox(): Promise<InboxItem[]>;
+  /** 말 걸기: 내 캐릭터와 상대 캐릭터의 1:1 방을 열거나 이미 있으면 그 방을 준다. */
+  openDm(myId: string, otherId: string): Promise<Result<string>>;
+  getPersona(id: string): Promise<Persona | null>;
+  /** 방마다 마지막으로 말한 내 캐릭터. 다시 열면 그 캐릭터로 시작한다. */
+  getLastSpeaker(roomId: string): Promise<string | null>;
+  setLastSpeaker(roomId: string, characterId: string): Promise<void>;
 }
+
+/** 대화 쪽 호출 이름. 가짜 구현을 두 파일로 나눠 두려고 쓴다. */
+export type TalkKeys =
+  | 'listRooms'
+  | 'getRoom'
+  | 'listMessages'
+  | 'sendMessage'
+  | 'changeSpeaker'
+  | 'deleteMessage'
+  | 'report'
+  | 'block'
+  | 'unblock'
+  | 'listInbox'
+  | 'openDm'
+  | 'getPersona'
+  | 'getLastSpeaker'
+  | 'setLastSpeaker';

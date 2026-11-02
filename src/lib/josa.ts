@@ -11,7 +11,8 @@ function lastHangul(word: string) {
 export function josa(word: string, pair: Pair): string {
   const jong = lastHangul(word);
   const [withFinal, withoutFinal] = pair.split('/') as [string, string];
-  if (jong === null) return word + withFinal.replace(/^으/, '');
+  // 한글로 끝나지 않는 이름(예: "[캐릭터 A]")은 받침을 알 수 없어 두 형태를 함께 적는다.
+  if (jong === null) return pair === '으로/로' ? `${word}(으)로` : `${word}${withFinal}(${withoutFinal})`;
   if (pair === '으로/로') return word + (jong === 0 || jong === 8 ? '로' : '으로');
   if (pair === '와/과') return word + (jong === 0 ? '와' : '과');
   return word + (jong === 0 ? withoutFinal : withFinal);

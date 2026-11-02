@@ -13,7 +13,7 @@ import {
   type Session,
   type Settlement,
 } from '../types/domain';
-import type { GameService } from './types';
+import type { GameService, TalkKeys } from './types';
 import { josa } from '../lib/josa';
 
 interface Store {
@@ -118,7 +118,7 @@ function mine() {
   return store.characters.filter((c) => c.ownerId === store.session?.accountId);
 }
 
-export const mockService: GameService = {
+export const mockService: Omit<GameService, TalkKeys> = {
   async getSession() {
     return wait(store.session, 60);
   },
@@ -255,8 +255,17 @@ export const mockService: GameService = {
     return wait({ ok: true, value: undefined });
   },
 
+  async listMySends() {
+    const ids = new Set(mine().map((c) => c.id));
+    return wait(store.sends.filter((x) => ids.has(x.characterId)), 120);
+  },
   async getBusiestPlace(): Promise<Place | null> {
     return wait({ id: 'lounge', name: '재단 기숙사 휴게실', staying: 4 }, 120);
   },
 };
 
+// 대화 가짜 서비스(mockTalk)가 내 캐릭터와 보낸 일을 읽으려고 쓴다.
+export const mockStore = {
+  mine: () => mine(),
+  sends: () => store.sends,
+};

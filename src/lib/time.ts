@@ -18,3 +18,13 @@ export function dateKST(d: Date = new Date()) {
   const day = p.find((x) => x.type === 'day')?.value ?? '';
   return { month: Number(m), day: Number(day) };
 }
+
+/** "방금", "12분 전", "3시간 전". 하루가 넘으면 날짜. */
+export function ago(iso: string, now = Date.now()) {
+  const min = Math.floor((now - new Date(iso).getTime()) / 60_000);
+  if (min < 1) return '방금';
+  if (min < 60) return `${min}분 전`;
+  if (min < 24 * 60) return `${Math.floor(min / 60)}시간 전`;
+  const { month, day } = dateKST(new Date(iso));
+  return `${month}월 ${day}일`;
+}

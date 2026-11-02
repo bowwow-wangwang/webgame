@@ -16,6 +16,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const n = useRef(0);
   const show = useCallback((t: Omit<ToastItem, 'id'>) => setItem({ ...t, id: ++n.current }), []);
 
+  // 다른 화면으로 가면 지난 화면의 알림은 거둔다 (실패 알림이 엉뚱한 화면에 남지 않게).
+  useEffect(() => {
+    const clear = () => setItem(null);
+    window.addEventListener('hashchange', clear);
+    return () => window.removeEventListener('hashchange', clear);
+  }, []);
+
   useEffect(() => {
     if (!item || item.kind === 'danger') return;
     const t = setTimeout(() => setItem(null), item.kind === 'ok' ? 4000 : 6000);
