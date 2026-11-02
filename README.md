@@ -21,7 +21,7 @@ npm run preview    # http://localhost:4173/webgame/ (깃허브 페이지와 같�
 | --- | --- |
 | `design/` | 디자인 시스템 원본: `tokens.json`, `system.css.tpl`, `build-css.mjs` |
 | `src/styles/system.css` | 위 원본에서 만들어진 파일. 손으로 고치지 않는다 (`npm run css`) |
-| `src/styles/app.css` | 화면 배치(모바일 / PC 960px부터) |
+| `src/styles/app.css` | 화면 배치. 폭 기준: 600px 미만 휴대폰, 600~959px 태블릿(모바일 배치를 가운데 640px로 모음), 960~1279px 작은 노트북(PC 배치, 양옆 칸을 좁힘), 1280px부터 PC |
 | `src/config/` | 게임 제목(미정), 밸런스 수치(`world_config`와 같아야 함), 배치 기준 폭 |
 | `src/types/domain.ts` | 화면이 주고받는 데이터의 모양 |
 | `src/services/` | 데이터 창구. 지금은 `mock.ts`, 다음에 Supabase 구현으로 바꾼다 |
