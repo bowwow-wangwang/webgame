@@ -1,7 +1,7 @@
 // 하루 한 바퀴의 가짜 서버: 보내두기 정산, 판정, 갈림길, 오염, 휴식.
 // 진짜 서버에서는 이 계산이 전부 Postgres 함수와 예약 작업(틱)에서 일어난다. 화면은 결과만 받는다.
 import { BALANCE, DAY } from '../config/balance';
-import { OPEN_DATE } from '../config/game';
+import { openDate } from '../config/worldConfig';
 import { josa } from '../lib/josa';
 import {
   GRADE_LABEL,
@@ -52,7 +52,16 @@ interface RunState {
   forkEffect?: { contamination: number; item: string | null; lostBonus: boolean };
   result?: SendResult;
   seen?: boolean;
+  /** 보낼 때의 보상·회복 값. 운영자가 나중에 바꿔도 이 보내두기는 이 값으로 정산한다. */
+  rates?: Rates;
 }
+
+type Rates = Pick<
+  typeof DAY,
+  'contribution' | 'boostContribution' | 'dispatchContamination' | 'struggleExtra' | 'boostContamination' | 'steadyRelief' | 'pushContamination' | 'facilityProgress' | 'mapCells' | 'commonItems' | 'restRelief' | 'togetherBonus'
+>;
+const RATE_KEYS = ['contribution', 'boostContribution', 'dispatchContamination', 'struggleExtra', 'boostContamination', 'steadyRelief', 'pushContamination', 'facilityProgress', 'mapCells', 'commonItems', 'restRelief', 'togetherBonus'] as const;
+const snapshotRates = (): Rates => JSON.parse(JSON.stringify(Object.fromEntries(RATE_KEYS.map((k) => [k, DAY[k]])))) as Rates;
 
 interface DayStore {
   cond: Record<string, CondState>;
@@ -201,8 +210,9 @@ function inSeason(season: NonNullable<ForkSeed['season']>, t = now()) {
     });
   if (season === 'snow') return within(DAY.seasons.snow.month, DAY.seasons.snow.day, DAY.seasons.snow.days);
   if (season === 'rain') return within(DAY.seasons.rain.month, DAY.seasons.rain.day, DAY.seasons.rain.days);
-  if (!OPEN_DATE) return false;
-  const [, m, day] = OPEN_DATE.split('-').map(Number);
+  const open = openDate();
+  if (!open) return false;
+  const [, m, day] = open.split('-').map(Number);
   return within(m ?? 1, day ?? 1, DAY.seasons.truceDays);
 }
 
@@ -387,6 +397,7 @@ function settleWork(c: StoredChar, s: ActiveSend, run: RunState, pushedFrom?: Ro
   // 밀어붙이기로 성공해도 재단 직원과 무소속은 덤을 포기한다 (능력자는 오염으로 대신 치렀다).
   const bonus = ok && !(pushedFrom && c.role !== 'ability') && !run.forkEffect?.lostBonus;
   const h = s.hours;
+  const R = run.rates ?? snapshotRates();
   const map = { '{캐릭터}': c.name, '{구역}': s.targetName };
   const effect = run.forkEffect;
 
@@ -395,22 +406,22 @@ function settleWork(c: StoredChar, s: ActiveSend, run: RunState, pushedFrom?: Ro
     r.outcome = ok ? '순조' : '고전';
     const line = rl.grade === 'crit' ? CRIT_LINES.dispatch.crit : rl.grade === 'fumble' ? CRIT_LINES.dispatch.fumble : ok ? pickOne(DISPATCH_LINES[threat].smooth) : DISPATCH_LINES[threat].struggle;
     r.lines.push(fill(line, map));
-    let pct = (DAY.contribution[h] ?? 1) - (ok ? 0 : 1);
+    let pct = (R.contribution[h] ?? 1) - (ok ? 0 : 1);
     if (bonus && run.methodId === 'front') pct += 1;
-    if (ok && s.boost) pct += DAY.boostContribution;
+    if (ok && s.boost) pct += R.boostContribution;
     r.gains.push({ label: '정화 기여', value: `${s.targetName} +${Math.max(1, pct)}%` });
     if (bonus && run.methodId === 'around') r.gains.push({ label: '흔적', value: '안전한 길 표식 +1' });
-    let add = (DAY.dispatchContamination[h] ?? 8) + (ok ? 0 : DAY.struggleExtra) + (s.boost ? DAY.boostContamination : 0);
-    if (bonus && run.methodId === 'steady') add -= DAY.steadyRelief;
+    let add = (R.dispatchContamination[h] ?? 8) + (ok ? 0 : R.struggleExtra) + (s.boost ? R.boostContamination : 0);
+    if (bonus && run.methodId === 'steady') add -= R.steadyRelief;
     add += effect?.contamination ?? 0;
-    if (pushedFrom) add += DAY.pushContamination;
+    if (pushedFrom) add += R.pushContamination;
     setContamination(c, cond(c).value + Math.max(0, add));
     if (cond(c).value >= DAY.overloadAt) r.lines.push('오염이 한계에 닿았다. 쉬고 나면 다시 나갈 수 있다.');
     else if (cond(c).value >= DAY.cautionAt) r.lines.push('오염이 높아 몸이 무겁다. 쉬고 나면 괜찮아질 것이다.');
   } else if (kind === 'shift') {
     const line = rl.grade === 'crit' ? CRIT_LINES.shift.crit : rl.grade === 'fumble' ? CRIT_LINES.shift.fumble : ok ? `${s.targetName} 근무를 마쳤다.` : `${s.targetName} 근무를 마쳤다. 생각보다 오래 걸렸다.`;
     r.lines.push(line);
-    let p = DAY.facilityProgress[h] ?? 2;
+    let p = R.facilityProgress[h] ?? 2;
     if (bonus && run.methodId === 'hands') p += 2;
     r.gains.push({ label: '복구 진행', value: `${s.targetName} +${p}` });
     if (bonus && run.methodId === 'papers') addItem(r.items, pickOne(ITEMS.shift.common));
@@ -418,7 +429,7 @@ function settleWork(c: StoredChar, s: ActiveSend, run: RunState, pushedFrom?: Ro
     r.lines.push(
       rl.grade === 'crit' ? CRIT_LINES.outing.crit : rl.grade === 'fumble' ? CRIT_LINES.outing.fumble : ok ? `${s.targetName}에 다녀왔다.` : `${s.targetName}에 다녀왔다. 생각보다 오래 걸렸다.`,
     );
-    let cells = DAY.mapCells[h] ?? 1;
+    let cells = R.mapCells[h] ?? 1;
     if (bonus && run.methodId === 'walk') cells += 1;
     r.gains.push({ label: '여행 지도', value: `칸 +${cells}` });
     if (bonus && run.methodId === 'meet') r.gains.push({ label: '정착지 이야기 조각', value: '+1' });
@@ -428,7 +439,7 @@ function settleWork(c: StoredChar, s: ActiveSend, run: RunState, pushedFrom?: Ro
 
   // 물품: 개수는 시간으로 정해지고, 어떤 것이 나올지만 분류 안에서 섞인다.
   const table = ITEMS[kind];
-  for (let i = 0; i < (DAY.commonItems[h] ?? 1); i++) addItem(r.items, pickOne(table.common));
+  for (let i = 0; i < (R.commonItems[h] ?? 1); i++) addItem(r.items, pickOne(table.common));
   if (h >= 8) addItem(r.items, pickOne(table.rare));
   if (rl.grade === 'crit') {
     addItem(r.items, pickOne(table.rare));
@@ -438,7 +449,7 @@ function settleWork(c: StoredChar, s: ActiveSend, run: RunState, pushedFrom?: Ro
   if (effect?.item) addItem(r.items, effect.item);
 
   r.growth = ok ? { stat, label: statLabel(stat, c.role) } : null;
-  if (!ok && !pushedFrom) r.push = { cost: c.role === 'ability' ? `오염 +${DAY.pushContamination}` : '성공해도 방식의 덤은 받지 않아요' };
+  if (!ok && !pushedFrom) r.push = { cost: c.role === 'ability' ? `오염 +${R.pushContamination}` : '성공해도 방식의 덤은 받지 않아요' };
 
   const met = new Map<string, Persona>();
   for (const p of presentAt(run.targetId)) met.set(p.id, p);
@@ -455,17 +466,17 @@ const REST_DEF: Record<RestKind, { label: string; place: string; placeId: string
   settlement: { label: '정착지에서 쉬기', place: '새벽뜰', placeId: 'saebyeok', desc: '정착지 모닥불 곁에서 쉬어요. 그곳 사람들과 마주쳐요.', request: false },
 };
 
-function reliefOf(kind: RestKind, hours: number) {
-  const base = DAY.restRelief[hours] ?? 10;
+function reliefOf(kind: RestKind, hours: number, R: Pick<Rates, 'restRelief' | 'togetherBonus'> = DAY) {
+  const base = R.restRelief[hours] ?? 10;
   const together = kind === 'together' && presentAt('lounge').length > 0;
-  return Math.round(base * (together ? 1 + DAY.togetherBonus : 1));
+  return Math.round(base * (together ? 1 + R.togetherBonus : 1));
 }
 
 function settleRest(c: StoredChar, s: ActiveSend, run: RunState): SendResult {
   const r = baseResult(c, s);
   const kind = run.restKind ?? 'alone';
   const def = REST_DEF[kind];
-  const relief = reliefOf(kind, s.hours);
+  const relief = reliefOf(kind, s.hours, run.rates);
   const before = cond(c).value;
   setContamination(c, before - relief);
   const after = cond(c).value;
@@ -537,7 +548,7 @@ export const mockDay: Pick<GameService, DayKeys> = {
       endsAt: iso(start + req.hours * H),
       boost,
     };
-    const run: RunState = { methodId: method.id, stat: method.stat, targetId: target.id };
+    const run: RunState = { methodId: method.id, stat: method.stat, targetId: target.id, rates: snapshotRates() };
     if (Math.random() < (DAY.forkChance[req.hours] ?? 0)) {
       assignFork(c, run);
       // 도중 어느 때에 온다 (처음과 끝 언저리는 피한다).
@@ -684,7 +695,7 @@ export const mockDay: Pick<GameService, DayKeys> = {
       startedAt: iso(start),
       endsAt: iso(start + hours * H),
     };
-    day.runs[s.id] = { methodId: null, stat: null, targetId: d.placeId, restKind: kind };
+    day.runs[s.id] = { methodId: null, stat: null, targetId: d.placeId, restKind: kind, rates: snapshotRates() };
     mockStore.sends().push(s);
     mockStore.save();
     saveDay();

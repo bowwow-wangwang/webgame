@@ -29,9 +29,10 @@ const TABS = [
   { to: '/admin/done', label: '처리한 신고' },
   { to: '/admin/sanctions', label: '제재' },
   { to: '/admin/log', label: '조치 기록' },
+  { to: '/admin/config', label: '설정값' },
 ];
 
-function AdminFrame({ title, children, back }: { title: string; children: ReactNode; back?: { to: string; label: string } }) {
+export function AdminFrame({ title, children, back }: { title: string; children: ReactNode; back?: { to: string; label: string } }) {
   const { pathname } = useLocation();
   return (
     <Frame
@@ -136,7 +137,7 @@ export function ReportScreen() {
   const [r, setR] = useState<ReportCase | null | undefined>(undefined);
   const [memo, setMemo] = useState('');
   const [sanction, setSanction] = useState<'warn' | 'suspend' | 'ban' | null>(null);
-  const [days, setDays] = useState<string>(String(BALANCE.suspendDays[1]));
+  const [days, setDays] = useState<string>(String(BALANCE.suspendDays[1] ?? BALANCE.suspendDays[0]));
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState<Pending>(null);
 
