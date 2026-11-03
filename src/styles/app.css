@@ -178,3 +178,4 @@ button, input, select, textarea { font-family: inherit; }
 .app-setting__list { display: flex; flex-direction: column; gap: 4px; }
 .app-setting__links { display: flex; flex-wrap: wrap; gap: 4px 8px; }
 .app-notice-preview { display: flex; gap: 10px; align-items: center; padding: 12px; border: 1px solid var(--line-strong); background: var(--surface-raised); font-size: 15px; }
+.app-choice .t-btn { flex-shrink: 0; min-width: 64px; }

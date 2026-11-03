@@ -8,7 +8,8 @@
     "build": "npm run css && tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b",
-    "css": "node design/build-css.mjs"
+    "css": "node design/build-css.mjs",
+    "seed:forks": "node scripts/gen-forks.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",

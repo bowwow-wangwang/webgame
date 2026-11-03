@@ -72,4 +72,10 @@ export const DAY = {
   /** 갈림길이 올 확률 (8시간은 하나 확정, 둘째는 아직 만들지 않았다). */
   forkChance: { 1: 0.3, 4: 0.6, 8: 1 } as Record<number, number>,
   growthCap: 80,
+  /** 계절 갈림길이 나오는 기간 (한국 시간, 월·일과 날 수). 휴전 기념일 주간은 오픈일(game.ts)에서 시작한다. */
+  seasons: {
+    snow: { month: 12, day: 1, days: 7 },
+    rain: { month: 6, day: 22, days: 21 },
+    truceDays: 7,
+  },
 } as const;
