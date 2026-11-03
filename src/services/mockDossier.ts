@@ -8,6 +8,7 @@ import {
   type DirectoryEntry,
   type Dossier,
   type MemoryLoss,
+  type PreRecord,
   type Persona,
   type Relation,
   type RelationRequest,
@@ -15,6 +16,7 @@ import {
   type Role,
   type Stats,
 } from '../types/domain';
+import { dayRecords } from './mockDay';
 import { mockStore } from './mock';
 import type { DossierKeys, GameService } from './types';
 
@@ -26,6 +28,7 @@ interface OtherDef {
   persona: Persona;
   origin: string | null;
   memoryLoss: MemoryLoss | null;
+  preRecord?: PreRecord;
   stats: Stats | null;
   status: string;
   regNo: string | null;
@@ -33,11 +36,11 @@ interface OtherDef {
 const st = (a: number[]): Stats => ({ str: a[0]!, con: a[1]!, dex: a[2]!, emp: a[3]!, int: a[4]!, mind: a[5]!, edu: a[6]!, craft: a[7]! });
 const P = (id: string, name: string, role: Role, img: string | null): Persona => ({ id, name, role, portraitUrl: img, mine: false });
 const OTHERS: OtherDef[] = [
-  { persona: P('oA', '[캐릭터 A]', 'ability', portraitA), origin: '새벽뜰', memoryLoss: 'name', stats: st([50, 40, 45, 35, 30, 50, 30, 50]), status: '휴게실에서 쉬는 중', regNo: 'A-0388' },
+  { persona: P('oA', '[캐릭터 A]', 'ability', portraitA), origin: '새벽뜰', memoryLoss: 'name', preRecord: { realName: '[본명]' }, stats: st([50, 40, 45, 35, 30, 50, 30, 50]), status: '휴게실에서 쉬는 중', regNo: 'A-0388' },
   { persona: P('oB', '[캐릭터 B]', 'staff', portraitB), origin: null, memoryLoss: null, stats: st([30, 40, 30, 60, 45, 40, 55, 30]), status: '식당 근무 중', regNo: null },
   { persona: P('oC', '[캐릭터 C]', 'free', null), origin: '스텔라', memoryLoss: null, stats: null, status: '휴게실에서 쉬는 중', regNo: null },
   { persona: P('oD', '[캐릭터 D]', 'ability', portraitB), origin: null, memoryLoss: 'all', stats: st([40, 40, 40, 40, 40, 40, 40, 50]), status: '휴게실에서 쉬는 중', regNo: 'A-0402' },
-  { persona: P('oE', '[캐릭터 E]', 'ability', portraitA), origin: '새벽뜰', memoryLoss: 'period', stats: st([35, 45, 55, 50, 35, 40, 30, 50]), status: '새벽뜰로 다녀오는 중', regNo: 'A-0391' },
+  { persona: P('oE', '[캐릭터 E]', 'ability', portraitA), origin: '새벽뜰', memoryLoss: 'period', preRecord: { realName: '[본명]', born: '[생년]' }, stats: st([35, 45, 55, 50, 35, 40, 30, 50]), status: '새벽뜰로 다녀오는 중', regNo: 'A-0391' },
   { persona: P('oF', '[캐릭터 F]', 'staff', portraitB), origin: '누에바 에스페란사', memoryLoss: null, stats: st([30, 35, 30, 55, 50, 45, 55, 40]), status: '새벽뜰에서 쉬는 중', regNo: null },
 ];
 
@@ -100,6 +103,8 @@ function relationsOf(id: string): Relation[] {
     .filter((r): r is Relation => r !== null);
 }
 
+const SLIP_TITLE = { dispatch: '출동 통지', shift: '근무 일지', outing: '다녀오기 표', rest: '휴식 기록' } as const;
+
 export const mockDossier: Pick<GameService, DossierKeys> = {
   async getDossier(id) {
     seed();
@@ -112,6 +117,7 @@ export const mockDossier: Pick<GameService, DossierKeys> = {
         registrationNo: c.registrationNo,
         origin: c.originSettlement,
         memoryLoss: c.memoryLoss,
+        preRecord: c.preRecord,
         ability: c.ability,
         past: c.past,
         look: c.look,
@@ -119,10 +125,10 @@ export const mockDossier: Pick<GameService, DossierKeys> = {
         stats: c.stats,
         statsHidden: !!c.statsHidden,
         status: running ? `${running.targetName} ${SEND_KIND_LABEL[running.kind]} 중` : null,
-        // 오염은 서버가 출동과 휴식으로 계산한다. 테스트 화면에서는 갓 등록한 상태(0)로 둔다.
-        contamination: c.role === 'ability' ? [0, 0, 0, 0, 0, 0, 0] : null,
-        // 갈림길이 생기면 서버가 선택 기록을 채운다. 숨긴 줄도 주인에게는 보인다.
-        choices: [],
+        // 오염은 서버가 출동과 휴식으로 계산한다 (mockDay).
+        contamination: dayRecords.condition(c).week,
+        // 갈림길에서 고른 것이 한 줄씩 쌓인다. 숨긴 줄도 주인에게는 보인다.
+        choices: dayRecords.choices(c.id),
         qna: [],
         memo: null,
         relations: relationsOf(id),
@@ -140,6 +146,7 @@ export const mockDossier: Pick<GameService, DossierKeys> = {
       registrationNo: o.regNo,
       origin: o.origin ? { id: o.origin, name: o.origin } : null,
       memoryLoss: o.memoryLoss,
+      preRecord: o.preRecord ?? {},
       ability: o.persona.role === 'ability' ? '[능력 한 줄]' : '',
       past: '[플레이어가 쓴 과거 이야기]',
       look: '[플레이어가 쓴 외형 설명]',
@@ -162,7 +169,8 @@ export const mockDossier: Pick<GameService, DossierKeys> = {
     mockStore.save();
     return wait({ ok: true, value: undefined });
   },
-  async setChoiceHidden(_id, choiceId, hidden) {
+  async setChoiceHidden(id, choiceId, hidden) {
+    if (dayRecords.setChoiceHidden(id, choiceId, hidden)) return wait({ ok: true, value: undefined });
     t.choiceHidden[choiceId] = hidden;
     save();
     return wait({ ok: true, value: undefined });
@@ -173,21 +181,29 @@ export const mockDossier: Pick<GameService, DossierKeys> = {
     if (c) {
       for (const s of mockStore.sends().filter((x) => x.characterId === id)) {
         const running = new Date(s.endsAt).getTime() > Date.now();
+        const r = running ? null : dayRecords.result(s.id);
+        const roll = r?.roll;
+        const meta: string[] = [];
+        if (running) meta.push('진행 중');
+        if (roll) meta.push(`${roll.statLabel} ${roll.value}/${roll.target} ${dayRecords.gradeLabel(roll.grade)}`);
+        if (r) meta.push(...r.gains.map((g) => `${g.label} ${g.value}`));
         out.push({
           id: s.id,
           kind: s.kind,
           at: s.startedAt,
-          title: s.kind === 'dispatch' ? '출동 통지' : s.kind === 'shift' ? '근무 일지' : '다녀오기 표',
+          title: SLIP_TITLE[s.kind],
           rows: [
-            [s.kind === 'dispatch' ? '구역' : s.kind === 'shift' ? '근무지' : '목적지', s.targetName],
-            ['방식', `${s.methodLabel}, ${s.hours}시간`],
+            [s.kind === 'dispatch' ? '구역' : s.kind === 'shift' ? '근무지' : s.kind === 'rest' ? '장소' : '목적지', s.targetName],
+            [s.kind === 'rest' ? '휴식' : '방식', `${s.methodLabel}, ${s.hours}시간`],
           ],
-          // 결과 문장과 판정은 끝난 뒤 서버가 채운다.
-          body: running ? '진행 중. 끝나면 결과가 여기에 남아요.' : '[결과 문구. 서버가 판정한 뒤 채운다]',
-          meta: running ? ['진행 중'] : [],
-          form: s.kind === 'dispatch' ? '관리대상자 출동 서식 제[번호]호' : s.kind === 'shift' ? '재단 서식 근-1' : undefined,
+          body: running ? '진행 중. 끝나면 결과가 여기에 남아요.' : r ? [...r.lines, r.fork ? `갈림길: ${r.fork.text}` : ''].filter(Boolean).join(' ') : '정산을 기다리는 중.',
+          meta,
+          form: s.kind === 'dispatch' ? '관리대상자 출동 서식 제[번호]호' : s.kind === 'shift' || s.kind === 'rest' ? '재단 서식 근-1' : undefined,
           running,
         });
+      }
+      for (const ch of dayRecords.choices(id)) {
+        out.push({ id: `ch-${ch.id}`, kind: 'choice', at: ch.date, title: '전달 쪽지', rows: [['선택 기록', ch.text]], meta: ch.hidden ? ['숨김'] : ['판독지 선택 기록에 남김'] });
       }
       out.push({
         id: `${id}-reg`,

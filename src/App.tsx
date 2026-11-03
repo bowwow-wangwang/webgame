@@ -6,7 +6,8 @@ import { Loading } from './ui/Loading';
 import { ToastProvider } from './ui/Toast';
 import { JoinScreen, LoginScreen } from './screens/Auth';
 import { CreateFlow } from './screens/create/CreateFlow';
-import { InstallScreen, RegisteredScreen, SendIndex, SendScreen, SentScreen } from './screens/AfterCreate';
+import { InstallScreen, RegisteredScreen, SendScreen, SentScreen } from './screens/AfterCreate';
+import { RestIndex, RestScreen, ResultScreen, RunScreen, SendHub } from './screens/day/DayScreens';
 import { HomeScreen, PendingScreen } from './screens/Home';
 import { DmScreen, PlaceScreen, TalkScreen } from './screens/talk/TalkScreens';
 import { DirectoryScreen, DossierScreen, RecordScreen } from './screens/dossier/DossierScreens';
@@ -54,7 +55,11 @@ const router = createHashRouter([
       { path: '/create/:step', element: <RequireSession needCharacter={false}><CreateFlow /></RequireSession> },
       { path: '/registered/:id', element: <RequireSession><RegisteredScreen /></RequireSession> },
       { path: '/install', element: <RequireSession><InstallScreen /></RequireSession> },
-      { path: '/send', element: <RequireSession><SendIndex /></RequireSession> },
+      { path: '/send', element: <RequireSession><SendHub /></RequireSession> },
+      { path: '/run/:id', element: <RequireSession><RunScreen /></RequireSession> },
+      { path: '/result/:id', element: <RequireSession><ResultScreen /></RequireSession> },
+      { path: '/rest', element: <RequireSession><RestIndex /></RequireSession> },
+      { path: '/rest/:id', element: <RequireSession><RestScreen /></RequireSession> },
       { path: '/send/:id', element: <RequireSession><SendScreen /></RequireSession> },
       { path: '/sent/:id', element: <RequireSession><SentScreen /></RequireSession> },
       { path: '/home', element: <RequireSession><HomeScreen /></RequireSession> },

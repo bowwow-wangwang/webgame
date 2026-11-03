@@ -1,4 +1,15 @@
-import { STAT_ORDER, MEMORY_LOSS_LABEL, ROLE_LABEL, statLabel, type Role, type Stats } from '../../types/domain';
+import {
+  STAT_ORDER,
+  MEMORY_LOSS_LABEL,
+  PRE_RECORD_ITEMS,
+  ROLE_LABEL,
+  redactedCount,
+  statLabel,
+  type MemoryLoss,
+  type PreRecord,
+  type Role,
+  type Stats,
+} from '../../types/domain';
 import { GovEmblem, GovStamp } from '../../ui/Marks';
 
 // 역할마다 다른 서식 이름. 재단 직원·무소속 서식의 세부(문장, 도장)는 아직 정해지지 않았다.
@@ -11,7 +22,8 @@ const FORM_TITLE: Record<Role, { org: string | null; title: string }> = {
 export interface RecordData {
   role: Role | null;
   name: string;
-  memoryLoss: string | null;
+  memoryLoss: MemoryLoss | null;
+  preRecord: PreRecord;
   origin: string | null;
   stats: Stats;
   past: string;
@@ -61,7 +73,7 @@ export function Record({ data, stamped, compact }: { data: RecordData; stamped: 
           {role === 'ability' && (
             <div className="t-cell t-cell--wide">
               <span className="t-cell__k">기억</span>
-              <span className="t-cell__v">{data.memoryLoss ? MEMORY_LOSS_LABEL[data.memoryLoss as keyof typeof MEMORY_LOSS_LABEL] : '[기억상실 정도]'}</span>
+              <span className="t-cell__v">{data.memoryLoss ? MEMORY_LOSS_LABEL[data.memoryLoss] : '[기억상실 정도]'}</span>
             </div>
           )}
           <div className="t-cell t-cell--wide">
@@ -69,6 +81,23 @@ export function Record({ data, stamped, compact }: { data: RecordData; stamped: 
             <span className="t-cell__v">{data.origin ?? '기재 사항 없음'}</span>
           </div>
         </div>
+        {role === 'ability' && data.memoryLoss && (
+          <>
+            <h2 className="t-bar" style={{ marginTop: 10 }}>
+              발현 이전 기록
+            </h2>
+            <div className="t-cells">
+              {PRE_RECORD_ITEMS.map((it, i) => (
+                <div className="t-cell" key={it.key}>
+                  <span className="t-cell__k">{it.label}</span>
+                  <span className="t-cell__v">
+                    {i >= PRE_RECORD_ITEMS.length - redactedCount(data.memoryLoss) ? <span className="t-redact">말소됨</span> : data.preRecord[it.key] || '기재 사항 없음'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
         <h2 className="t-bar" style={{ marginTop: 10 }}>
           측정치
         </h2>

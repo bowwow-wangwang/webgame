@@ -3,18 +3,18 @@
 import { BALANCE, TEXT_LIMITS } from '../config/balance';
 import {
   STAT_ORDER,
-  sendKindOf,
+  keepOpen,
   type ActiveSend,
   type Character,
   type CharacterDraft,
   type Place,
   type Result,
   type SendOptions,
+  type WorkKind,
   type Session,
   type Settlement,
 } from '../types/domain';
-import type { DossierKeys, GameService, TalkKeys } from './types';
-import { josa } from '../lib/josa';
+import type { DayKeys, DossierKeys, GameService, TalkKeys } from './types';
 
 // 판독지에 쓰는 설정 글도 같이 둔다 (화면용 Character에는 없는 칸).
 export type StoredChar = Character & { ownerId: string; look: string; personality: string; ability: string; statsHidden?: boolean };
@@ -67,7 +67,7 @@ function normalizeCode(code: string) {
   return code.toUpperCase().replace(/[\s-]/g, '');
 }
 
-const SEND_TABLE: Record<'dispatch' | 'shift' | 'outing', Omit<SendOptions, 'hours'>> = {
+export const SEND_TABLE: Record<WorkKind, Pick<SendOptions, 'kind' | 'targetLegend' | 'targets' | 'methods'>> = {
   dispatch: {
     kind: 'dispatch',
     targetLegend: '출동할 구역',
@@ -118,10 +118,11 @@ const SEND_TABLE: Record<'dispatch' | 'shift' | 'outing', Omit<SendOptions, 'hou
 };
 
 function mine() {
-  return store.characters.filter((c) => c.ownerId === store.session?.accountId);
+  // 칸이 생기기 전에 저장된 테스트 캐릭터에도 빈 값을 채운다.
+  return store.characters.filter((c) => c.ownerId === store.session?.accountId).map((c) => (c.preRecord ? c : Object.assign(c, { preRecord: {} })));
 }
 
-export const mockService: Omit<GameService, TalkKeys | DossierKeys> = {
+export const mockService: Omit<GameService, TalkKeys | DossierKeys | DayKeys> = {
   async getSession() {
     return wait(store.session, 60);
   },
@@ -184,7 +185,10 @@ export const mockService: Omit<GameService, TalkKeys | DossierKeys> = {
     const over = STAT_ORDER.some((k) => d.stats[k] < BALANCE.statBase || d.stats[k] > BALANCE.statCapAtCreation);
     if (total !== BALANCE.statBase * STAT_ORDER.length + BALANCE.statPool || over)
       return wait({ ok: false, field: 'stats', message: '능력치를 다시 나눠 주세요.' });
-    const fields = [d.name, d.look, d.personality, d.past, d.ability];
+    const pre = d.role === 'ability' ? keepOpen(d.preRecord, d.memoryLoss) : {};
+    if (Object.values(pre).some((v) => (v ?? '').length > TEXT_LIMITS.preRecordItem))
+      return wait({ ok: false, field: 'text', message: `발현 이전 기록은 항목마다 ${TEXT_LIMITS.preRecordItem}자까지예요.` });
+    const fields = [d.name, d.look, d.personality, d.past, d.ability, ...Object.values(pre).map((v) => v ?? '')];
     // 어떤 말이 걸렸는지는 알려 주지 않는다 (금칙어 목록을 짐작하지 못하게).
     if (fields.some((f) => CONTACT_PATTERN.test(f))) return wait({ ok: false, field: 'text', message: '설정 글에 쓸 수 없는 내용이 있어요. 연락처나 주소는 적을 수 없어요.' });
 
@@ -197,6 +201,7 @@ export const mockService: Omit<GameService, TalkKeys | DossierKeys> = {
       name: d.name.trim(),
       registrationNo: regNo,
       memoryLoss: d.role === 'ability' ? d.memoryLoss : null,
+      preRecord: pre,
       originSettlement: SETTLEMENTS.find((s) => s.id === d.originSettlementId) ?? null,
       stats: d.stats,
       past: d.past,
@@ -214,8 +219,8 @@ export const mockService: Omit<GameService, TalkKeys | DossierKeys> = {
   },
 
   async getQnaPrompt() {
-    // 실제 질문은 설정집 "이벤트 스크립트" 탭의 문답이 DB 시드로 들어온다.
-    return wait({ id: 'created', text: '[문답 질문 · 설정집의 "등록한 날" 질문]' }, 120);
+    // 설정집 "이벤트 스크립트" 6절 문답의 "캐릭터를 만든 직후" 질문. 진짜는 qna_prompts 시드에서 온다.
+    return wait({ id: 'created', text: '오늘 아침, 가장 먼저 떠오른 것은?' }, 120);
   },
   async answerQna(_c, _p, text) {
     if (text.length > TEXT_LIMITS.qnaAnswer) return wait({ ok: false, message: `${TEXT_LIMITS.qnaAnswer}자까지 적을 수 있어요.` });
@@ -223,36 +228,6 @@ export const mockService: Omit<GameService, TalkKeys | DossierKeys> = {
     return wait({ ok: true, value: undefined });
   },
 
-  async getSendOptions(characterId) {
-    const c = mine().find((x) => x.id === characterId);
-    const kind = sendKindOf(c?.role ?? 'ability');
-    return wait({ ...SEND_TABLE[kind], hours: BALANCE.sendHours });
-  },
-  async startSend(req) {
-    const c = mine().find((x) => x.id === req.characterId);
-    if (!c) return wait({ ok: false, message: '캐릭터를 찾지 못했어요.' });
-    const t = SEND_TABLE[sendKindOf(c.role)];
-    const target = t.targets.find((x) => x.id === req.targetId);
-    const method = t.methods.find((x) => x.id === req.methodId);
-    if (!target || !method || !(BALANCE.sendHours as readonly number[]).includes(req.hours)) return wait({ ok: false, message: '고른 내용을 다시 확인해 주세요.' });
-    if (store.sends.some((s) => s.characterId === c.id && new Date(s.endsAt) > new Date()))
-      return wait({ ok: false, message: `${josa(c.name, '은/는')} 이미 보내 둔 일이 있어요.` });
-    const now = new Date();
-    const s: ActiveSend = {
-      id: uid(),
-      characterId: c.id,
-      characterName: c.name,
-      kind: t.kind,
-      hours: req.hours,
-      targetName: target.name,
-      methodLabel: method.label,
-      startedAt: now.toISOString(),
-      endsAt: new Date(now.getTime() + req.hours * 3600_000).toISOString(),
-    };
-    store.sends.push(s);
-    save();
-    return wait({ ok: true, value: s }, 400);
-  },
   async getSend(id) {
     return wait(store.sends.find((s) => s.id === id) ?? null, 120);
   },
@@ -261,10 +236,6 @@ export const mockService: Omit<GameService, TalkKeys | DossierKeys> = {
     return wait({ ok: true, value: undefined });
   },
 
-  async listMySends() {
-    const ids = new Set(mine().map((c) => c.id));
-    return wait(store.sends.filter((x) => ids.has(x.characterId)), 120);
-  },
   async getBusiestPlace(): Promise<Place | null> {
     return wait({ id: 'lounge', name: '재단 기숙사 휴게실', staying: 4 }, 120);
   },
@@ -275,4 +246,7 @@ export const mockStore = {
   mine: () => mine(),
   sends: () => store.sends,
   save: () => save(),
+  wait,
+  uid,
+  contactPattern: CONTACT_PATTERN,
 };

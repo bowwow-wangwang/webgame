@@ -10,8 +10,9 @@ import {
   type Activity,
   type ActivityKind,
   type Dossier,
-  type MemoryLoss,
   type Role,
+  PRE_RECORD_ITEMS,
+  redactedCount,
 } from '../../types/domain';
 import { GovEmblem } from '../../ui/Marks';
 
@@ -23,10 +24,6 @@ const FORM: Record<Role, { title: string; sub: (name: string) => string; tabs: [
 };
 
 export const PAGE_NAMES = (role: Role) => FORM[role].tabs;
-
-// 기억상실 정도만큼 "발현 이전 기록" 항목을 말소 띠로 가린다 (네 항목 중).
-const REDACT: Record<MemoryLoss, number> = { most: 1, period: 2, name: 3, all: 4 };
-const PRE_ITEMS = ['본명', '생년', '거주지', '직업'];
 
 function Desk({ children, mark }: { children: ReactNode; mark: string }) {
   return (
@@ -105,7 +102,7 @@ export function DossierPage1({
 }) {
   const role = d.persona.role;
   const ability = role === 'ability';
-  const redacted = d.memoryLoss ? REDACT[d.memoryLoss] : 0;
+  const redacted = redactedCount(d.memoryLoss);
   const c = d.contamination;
   const avg = c ? Math.round(c.reduce((a, b) => a + b, 0) / c.length) : 0;
   const max = c ? Math.max(...c) : 0;
@@ -198,7 +195,7 @@ export function DossierPage1({
           {ability && (
             <li>
               <span>
-                접종 뒤 발현. 발현 이전 기록 {PRE_ITEMS.length}개 항목 중 {redacted}개 말소됨.
+                접종 뒤 발현. 발현 이전 기록 {PRE_RECORD_ITEMS.length}개 항목 중 {redacted}개 말소됨.
               </span>
             </li>
           )}
@@ -240,10 +237,12 @@ export function DossierPage1({
           <>
             <Bar>발현 이전 기록</Bar>
             <div className="t-cells">
-              {PRE_ITEMS.map((k, i) => (
-                <div className="t-cell" key={k}>
-                  <span className="t-cell__k">{k}</span>
-                  <span className="t-cell__v">{i >= PRE_ITEMS.length - redacted ? <span className="t-redact">말소됨</span> : '기재 사항 없음'}</span>
+              {PRE_RECORD_ITEMS.map((it, i) => (
+                <div className="t-cell" key={it.key}>
+                  <span className="t-cell__k">{it.label}</span>
+                  <span className="t-cell__v">
+                    {i >= PRE_RECORD_ITEMS.length - redacted ? <span className="t-redact">말소됨</span> : d.preRecord[it.key] || '기재 사항 없음'}
+                  </span>
                 </div>
               ))}
             </div>
@@ -355,6 +354,7 @@ const SLIP_CLASS: Record<ActivityKind, string> = {
   dispatch: 't-slip t-slip--gov',
   shift: 't-slip t-slip--foundation',
   outing: 't-slip t-slip--copy',
+  rest: 't-slip t-slip--foundation',
   choice: 't-slip t-slip--memo',
   register: 't-slip t-slip--copy',
 };
@@ -362,6 +362,7 @@ const NODE_CLASS: Record<ActivityKind, string> = {
   dispatch: 't-timeline__node t-timeline__node--dispatch',
   shift: 't-timeline__node t-timeline__node--work',
   outing: 't-timeline__node t-timeline__node--trip',
+  rest: 't-timeline__node t-timeline__node--rest',
   choice: 't-timeline__node t-timeline__node--choice',
   register: 't-timeline__node',
 };
@@ -374,10 +375,10 @@ export function DossierPage2({ d, items }: { d: Dossier; items: Activity[] }) {
   const role = d.persona.role;
   const sendLabel = role === 'ability' ? '출동' : role === 'staff' ? '근무' : '다녀오기';
   const counts = {
-    send: items.filter((i) => ['dispatch', 'shift', 'outing'].includes(i.kind)).length,
+    send: items.filter((i) => ['dispatch', 'shift', 'outing', 'rest'].includes(i.kind)).length,
     choice: items.filter((i) => i.kind === 'choice').length,
   };
-  const shown = items.filter((i) => filter === 'all' || (filter === 'send' ? ['dispatch', 'shift', 'outing'].includes(i.kind) : i.kind === 'choice'));
+  const shown = items.filter((i) => filter === 'all' || (filter === 'send' ? ['dispatch', 'shift', 'outing', 'rest'].includes(i.kind) : i.kind === 'choice'));
   const days = useMemo(() => {
     const out: { day: string; list: Activity[] }[] = [];
     for (const a of shown) {
