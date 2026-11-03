@@ -22,8 +22,54 @@ export const TEXT_LIMITS = {
   personality: 1000,
   past: 2000,
   ability: 500,
+  preRecordItem: 40,
   imageAlt: 100,
   qnaAnswer: 60,
   message: 1000,
   passwordMin: 8,
+} as const;
+
+/**
+ * 하루 한 바퀴의 밸런스. **모두 초안**이다: 운영자가 정하기 전까지 화면을 돌려 보려고 넣은 값.
+ * 서버 쪽 world_config와 같은 이름, 같은 값을 쓴다. 시간별 값은 보내두기 시간(1·4·8) 순서다.
+ */
+export const DAY = {
+  /** 판정: 01은 대성공, 96~100은 대실패 (docs/systems/daily.md 4-1-1). */
+  critMax: 1,
+  fumbleMin: 96,
+  /** 오염이 이 값 이상이면 능력자의 판정 수치가 내려간다. */
+  cautionAt: 70,
+  cautionPenalty: 5,
+  overloadAt: 100,
+  /** 폭주하면 이 시간 동안 출동할 수 없다. 쉬어서 이 값 아래로 내려가면 바로 풀린다. */
+  overloadHours: 12,
+  overloadClearBelow: 50,
+  /** 시간이 지나면 저절로 조금씩 줄어든다 (시간당). */
+  naturalDecayPerHour: 1,
+  /** 출동 한 번에 쌓이는 오염. */
+  dispatchContamination: { 1: 8, 4: 18, 8: 28 } as Record<number, number>,
+  /** 출동이 고전이면 더 쌓인다. */
+  struggleExtra: 4,
+  /** "버티며 신중하게"에 성공하면 덜 쌓인다. */
+  steadyRelief: 5,
+  /** "능력을 아끼지 않는다". */
+  boostContamination: 8,
+  boostContribution: 2,
+  /** 밀어붙이기의 대가 (능력자). */
+  pushContamination: 6,
+  /** 정화 기여 (구역 정화율 %). 고전이면 1 적다. */
+  contribution: { 1: 1, 4: 3, 8: 5 } as Record<number, number>,
+  /** 근무 한 번의 시설 복구 진행. */
+  facilityProgress: { 1: 2, 4: 6, 8: 10 } as Record<number, number>,
+  /** 다녀오기 한 번에 밝혀지는 여행 지도 칸. */
+  mapCells: { 1: 1, 4: 2, 8: 3 } as Record<number, number>,
+  /** 흔한 물품 개수. 8시간은 "가끔" 물품 하나가 더 붙는다. */
+  commonItems: { 1: 1, 4: 2, 8: 3 } as Record<number, number>,
+  /** 휴식으로 줄어드는 오염. */
+  restRelief: { 1: 12, 4: 30, 8: 50 } as Record<number, number>,
+  /** 함께 쉬기: 같은 시간에 같은 곳에 다른 계정 캐릭터가 있으면. */
+  togetherBonus: 0.2,
+  /** 갈림길이 올 확률 (8시간은 하나 확정, 둘째는 아직 만들지 않았다). */
+  forkChance: { 1: 0.3, 4: 0.6, 8: 1 } as Record<number, number>,
+  growthCap: 80,
 } as const;

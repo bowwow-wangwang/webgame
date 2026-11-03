@@ -17,6 +17,37 @@ export const MEMORY_LOSS_LABEL: Record<MemoryLoss, string> = {
   all: '전부 잊음',
 };
 
+/**
+ * 판독지 "발현 이전 기록" 칸. 기억상실 정도만큼 뒤에서부터 말소된다 (직업 → 거주지 → 생년 → 본명).
+ * 말소된 항목은 입력할 수 없고, 남은 항목은 비워 둬도 된다.
+ */
+export type PreRecordKey = 'realName' | 'born' | 'home' | 'job';
+export type PreRecord = Partial<Record<PreRecordKey, string>>;
+
+export const PRE_RECORD_ITEMS: readonly { key: PreRecordKey; label: string; hint: string }[] = [
+  { key: 'realName', label: '본명', hint: '발현 전에 쓰던 이름. 지금 이름과 같아도 돼요.' },
+  { key: 'born', label: '생년', hint: '태어난 해나 나이. 대략이어도 돼요.' },
+  { key: 'home', label: '거주지', hint: '살던 곳. 지명이 아니어도 돼요.' },
+  { key: 'job', label: '직업', hint: '발현 전에 하던 일.' },
+];
+
+const PRE_REDACTED: Record<MemoryLoss, number> = { most: 1, period: 2, name: 3, all: 4 };
+
+export function redactedCount(loss: MemoryLoss | null): number {
+  return loss ? PRE_REDACTED[loss] : 0;
+}
+
+/** 말소되지 않은 항목만 남긴다. 기억상실 정도를 바꾸면 말소된 칸의 글도 함께 지운다. */
+export function keepOpen(pre: PreRecord | undefined, loss: MemoryLoss | null): PreRecord {
+  const open = PRE_RECORD_ITEMS.length - redactedCount(loss);
+  const out: PreRecord = {};
+  PRE_RECORD_ITEMS.slice(0, open).forEach(({ key }) => {
+    const v = pre?.[key];
+    if (v) out[key] = v;
+  });
+  return out;
+}
+
 export type StatKey = 'str' | 'con' | 'dex' | 'emp' | 'int' | 'mind' | 'edu' | 'craft';
 export type Stats = Record<StatKey, number>;
 
@@ -66,6 +97,7 @@ export interface CharacterDraft {
   past: string;
   ability: string;
   memoryLoss: MemoryLoss | null;
+  preRecord: PreRecord;
   originSettlementId: string | null;
   stats: Stats;
   images: DraftImage[];
@@ -79,6 +111,7 @@ export interface Character {
   /** 능력자만 정부 등록 번호가 붙는다. */
   registrationNo: string | null;
   memoryLoss: MemoryLoss | null;
+  preRecord: PreRecord;
   originSettlement: Settlement | null;
   stats: Stats;
   past: string;
@@ -98,15 +131,19 @@ export interface QnaPrompt {
 }
 
 /** 보내두기: 능력자는 출동, 재단 직원은 근무, 무소속은 다녀오기. */
-export type SendKind = 'dispatch' | 'shift' | 'outing';
+/** 보내두기의 종류. 휴식도 시간을 골라 보내 두면 서버가 끝난 뒤 정산한다. */
+export type SendKind = 'dispatch' | 'shift' | 'outing' | 'rest';
 
 export const SEND_KIND_LABEL: Record<SendKind, string> = {
   dispatch: '출동',
   shift: '근무',
   outing: '다녀오기',
+  rest: '휴식',
 };
 
-export function sendKindOf(role: Role): SendKind {
+export type WorkKind = Exclude<SendKind, 'rest'>;
+
+export function sendKindOf(role: Role): WorkKind {
   return role === 'ability' ? 'dispatch' : role === 'staff' ? 'shift' : 'outing';
 }
 
@@ -129,6 +166,12 @@ export interface SendOptions {
   targets: SendTarget[];
   methods: SendMethod[];
   hours: readonly number[];
+  /** 능력자만: "능력을 아끼지 않는다". 켜면 능력으로 판정하고 오염이 더 쌓인다. */
+  boost: { extraContamination: number } | null;
+  /** 지금 보낼 수 없으면 그 이유 (폭주 중, 이미 보낸 일이 있음). */
+  blocked: string | null;
+  /** 판정에서 빠지는 값 (오염이 높을 때). 꼬리표에는 뺀 값을 적는다. */
+  penalty: number;
 }
 
 export interface SendRequest {
@@ -136,6 +179,7 @@ export interface SendRequest {
   targetId: string;
   methodId: string;
   hours: number;
+  boost?: boolean;
 }
 
 export interface ActiveSend {
@@ -148,6 +192,151 @@ export interface ActiveSend {
   methodLabel: string;
   startedAt: string;
   endsAt: string;
+  boost?: boolean;
+  /** 도착했지만 아직 고르지 않은 갈림길이 있다. */
+  forkWaiting?: boolean;
+  /** 끝났고 결과를 아직 보지 않았다. */
+  unseen?: boolean;
+}
+
+// ── 판정 ──
+
+/** 성공 단계. 대성공(01)과 대실패(96~100)는 서버 설정값이다. */
+export type Grade = 'crit' | 'extreme' | 'hard' | 'success' | 'fail' | 'fumble';
+
+export const GRADE_LABEL: Record<Grade, string> = {
+  crit: '대성공',
+  extreme: '극단적 성공',
+  hard: '어려운 성공',
+  success: '성공',
+  fail: '실패',
+  fumble: '대실패',
+};
+
+export function isSuccess(g: Grade) {
+  return g !== 'fail' && g !== 'fumble';
+}
+
+/** 서버가 굴린 판정 한 번. 화면은 이 값을 보여 주기만 한다. */
+export interface Roll {
+  stat: StatKey;
+  /** 역할에 맞춘 능력치 이름 (능력 / 전문). */
+  statLabel: string;
+  /** 판정 기준 = 능력치 - 감점. */
+  target: number;
+  penalty: number;
+  value: number;
+  grade: Grade;
+}
+
+export interface Gain {
+  label: string;
+  value: string;
+}
+
+/** 판독지에 남는 문서 한 장 (정부 공문 / 재단 메모). */
+export interface PaperNote {
+  from: 'gov' | 'foundation';
+  text: string;
+}
+
+export interface ForkOption {
+  id: string;
+  label: string;
+  /** 판정이 붙은 선택지만. 기준은 이 캐릭터의 지금 수치(감점 뒤). */
+  stat: StatKey | null;
+  statLabel: string | null;
+  target: number | null;
+  auto: boolean;
+}
+
+/** 보내두기 중 갈림길. 문구는 설정집 "이벤트 스크립트" 탭이 시드로 들어온다. */
+export interface Fork {
+  sendId: string;
+  code: string;
+  title: string;
+  situation: string;
+  gov: boolean;
+  options: ForkOption[];
+  /** 이때까지 고르지 않으면 자동 선택지로 처리된다 (보내두기가 끝날 때). */
+  deadline: string;
+  chosen: ForkOutcome | null;
+  /** 상황에 실제로 들어간 다른 캐릭터. 시스템은 이들의 말이나 행동을 지어내지 않는다. */
+  met: Persona[];
+}
+
+export interface ForkOutcome {
+  optionId: string;
+  optionLabel: string;
+  auto: boolean;
+  roll: Roll | null;
+  text: string;
+  /** 판독지 선택 기록에 남는 한 줄. 자동 처리는 남지 않는다. */
+  record: string | null;
+  paper: PaperNote | null;
+}
+
+export interface SendResult {
+  sendId: string;
+  characterId: string;
+  characterName: string;
+  role: Role;
+  kind: SendKind;
+  targetName: string;
+  methodLabel: string;
+  hours: number;
+  endedAt: string;
+  roll: Roll | null;
+  /** 밀어붙이기를 썼으면 처음 굴림. */
+  firstRoll: Roll | null;
+  /** 실패했고 아직 밀어붙이지 않았으면 대가를 적는다. */
+  push: { cost: string } | null;
+  /** 출동만: 순조 / 고전. */
+  outcome: '순조' | '고전' | null;
+  lines: string[];
+  quip: string | null;
+  gains: Gain[];
+  items: { name: string; count: number }[];
+  contamination: { before: number; after: number } | null;
+  /** 판정에 성공해 성장 표시가 붙은 능력치. */
+  growth: { stat: StatKey; label: string } | null;
+  fork: (ForkOutcome & { title: string }) | null;
+  /** 같은 곳에 있던 다른 캐릭터 (말 걸기 계기). */
+  met: Persona[];
+}
+
+/** 능력자의 오염 상태. 재단 직원과 무소속에게는 쌓이지 않는다. */
+export type ContaminationLevel = 'calm' | 'caution' | 'overload';
+
+export interface Condition {
+  characterId: string;
+  contamination: number | null;
+  level: ContaminationLevel;
+  penalty: number;
+  /** 폭주 중이면 출동할 수 있게 되는 때. */
+  overloadUntil: string | null;
+  /** 최근 7일 오염 (판독지 기록). */
+  week: number[] | null;
+}
+
+export type RestKind = 'alone' | 'together' | 'counsel' | 'treat' | 'settlement';
+
+export interface RestOption {
+  id: RestKind;
+  label: string;
+  place: string;
+  desc: string;
+  /** 시간별로 줄어들 오염 (서버가 계산한 예상치). */
+  estimate: Record<number, number>;
+  /** 상담과 치료는 재단 직원에게 남기는 요청이다. 받지 않아도 혼자 쉬기만큼은 줄어든다. */
+  request: boolean;
+  disabled: string | null;
+}
+
+export interface RestOptions {
+  options: RestOption[];
+  hours: readonly number[];
+  blocked: string | null;
 }
 
 export interface Place {
@@ -285,6 +474,7 @@ export interface Dossier {
   registrationNo: string | null;
   origin: Settlement | null;
   memoryLoss: MemoryLoss | null;
+  preRecord: PreRecord;
   ability: string;
   past: string;
   look: string;
@@ -304,7 +494,7 @@ export interface Dossier {
   createdAt: string;
 }
 
-export type ActivityKind = 'dispatch' | 'shift' | 'outing' | 'choice' | 'register';
+export type ActivityKind = 'dispatch' | 'shift' | 'outing' | 'rest' | 'choice' | 'register';
 
 export interface Activity {
   id: string;

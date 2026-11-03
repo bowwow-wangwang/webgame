@@ -22,7 +22,7 @@ function Plate({ right }: { right: string }) {
 const MENU: { to: string; ch: string; label: string; icon: PixelIconName; also?: string[] }[] = [
   { to: '/home', ch: '1', label: '상황판', icon: 'monitor' },
   { to: '/talk', ch: '2', label: '통신', icon: 'radio', also: ['/place/', '/dm/'] },
-  { to: '/send', ch: '3', label: '보내두기', icon: 'compass', also: ['/sent/'] },
+  { to: '/send', ch: '3', label: '보내두기', icon: 'compass', also: ['/sent/', '/run/', '/result/', '/rest'] },
   { to: '/record', ch: '4', label: '기록', icon: 'folder', also: ['/dossier/', '/directory'] },
   { to: '/settings', ch: '5', label: '단말', icon: 'gear' },
 ];
@@ -213,7 +213,12 @@ export function Frame({
           <section className="app-desk__center" aria-label={scrollLabel}>
             {body}
           </section>
-          {right && <aside className="app-desk__right">{right}</aside>}
+          {/* 오른쪽 칸은 내용이 길면 따로 스크롤된다: 키보드로도 들어가 스크롤할 수 있게 초점을 받는다. */}
+          {right && (
+            <aside className="app-desk__right" tabIndex={0} aria-label="곁 칸">
+              {right}
+            </aside>
+          )}
         </div>
         <StatusBar keys={ingame ? [['[1]~[5]', '화면'], ...keys] : keys} />
       </main>

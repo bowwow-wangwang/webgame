@@ -27,6 +27,8 @@ const OTHERS: Persona[] = [
   { id: 'oF', name: '[캐릭터 F]', role: 'staff', portraitUrl: portraitB, mine: false },
 ];
 const other = (id: string) => OTHERS.find((o) => o.id === id) as Persona;
+// 하루 한 바퀴(mockDay)가 같은 곳에 있던 캐릭터를 고를 때 쓴다.
+export const mockOthers = OTHERS;
 
 interface PlaceDef {
   id: string;

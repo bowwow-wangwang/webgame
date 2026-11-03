@@ -1,5 +1,11 @@
 import type {
   ActiveSend,
+  Condition,
+  Fork,
+  ForkOutcome,
+  RestKind,
+  RestOptions,
+  SendResult,
   Activity,
   DirectoryEntry,
   Dossier,
@@ -55,6 +61,28 @@ export interface GameService {
   getBusiestPlace(): Promise<Place | null>;
   listMySends(): Promise<ActiveSend[]>;
 
+  // ── 하루 한 바퀴: 판정, 갈림길, 오염, 휴식 ──
+  /** 능력자는 오염 수치, 다른 역할은 null. 판정 감점과 폭주 여부도 서버가 정한다. */
+  listConditions(): Promise<Condition[]>;
+  getCondition(characterId: string): Promise<Condition | null>;
+  /** 도착한 갈림길 (아직 안 왔으면 null). */
+  getFork(sendId: string): Promise<Fork | null>;
+  chooseFork(sendId: string, optionId: string): Promise<Result<ForkOutcome>>;
+  /** 끝난 보내두기의 결과. 판정은 끝나는 순간 서버가 이미 굴려 두었다. 열면 "본 것"으로 표시한다. */
+  getSendResult(sendId: string): Promise<Result<SendResult>>;
+  /** 실패한 판정을 한 번 더 굴린다. 능력자는 오염이 오르고, 다른 역할은 덤을 포기한다. */
+  pushSend(sendId: string): Promise<Result<SendResult>>;
+  getRestOptions(characterId: string): Promise<RestOptions>;
+  startRest(req: { characterId: string; kind: RestKind; hours: number }): Promise<Result<ActiveSend>>;
+  /** 테스트 화면에서만 있는 도구. Supabase 구현에는 없다. */
+  dev?: {
+    finishNow(sendId: string): Promise<void>;
+    bringFork(sendId: string): Promise<boolean>;
+    /** 다음 판정 한 번의 주사위 값을 정해 둔다 (연출 확인용). */
+    setNextRoll(value: number | null): Promise<void>;
+    setContamination(characterId: string, value: number): Promise<void>;
+  };
+
   // ── 대화 ──
   /** 지금 열려 있는 장소 채널(사람 수에 맞춰 서버가 연다)과 내 1:1 방. */
   listRooms(): Promise<Room[]>;
@@ -106,6 +134,21 @@ export type TalkKeys =
   | 'getPersona'
   | 'getLastSpeaker'
   | 'setLastSpeaker';
+
+/** 하루 한 바퀴 쪽 호출 이름. */
+export type DayKeys =
+  | 'getSendOptions'
+  | 'startSend'
+  | 'listMySends'
+  | 'listConditions'
+  | 'getCondition'
+  | 'getFork'
+  | 'chooseFork'
+  | 'getSendResult'
+  | 'pushSend'
+  | 'getRestOptions'
+  | 'startRest'
+  | 'dev';
 
 /** 판독지·관계·명부 쪽 호출 이름. */
 export type DossierKeys =

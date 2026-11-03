@@ -13,7 +13,17 @@ import { PickGroup } from '../../ui/Pick';
 import { Steps } from '../../ui/Steps';
 import { useToast } from '../../ui/Toast';
 import { shrinkImage, Upload } from '../../ui/Upload';
-import { MEMORY_LOSS_LABEL, ROLE_LABEL, type CharacterDraft, type MemoryLoss, type Role, type Settlement } from '../../types/domain';
+import {
+  MEMORY_LOSS_LABEL,
+  PRE_RECORD_ITEMS,
+  ROLE_LABEL,
+  keepOpen,
+  redactedCount,
+  type CharacterDraft,
+  type MemoryLoss,
+  type Role,
+  type Settlement,
+} from '../../types/domain';
 import { Record } from './Record';
 
 const STEP_NAMES = ['역할과 이름', '설정', '능력치', '사진', '확인'] as const;
@@ -28,6 +38,7 @@ function emptyDraft(): CharacterDraft {
     past: '',
     ability: '',
     memoryLoss: null,
+    preRecord: {},
     originSettlementId: null,
     stats: initialStats(),
     images: [],
@@ -58,7 +69,8 @@ export function CreateFlow() {
   useEffect(() => {
     void (async () => {
       const [d, s] = await Promise.all([api.loadDraft(), api.listSettlements()]);
-      setDraft(d ?? emptyDraft());
+      // 이 칸이 생기기 전에 저장된 초안에도 빈 값을 채운다.
+      setDraft(d ? { ...emptyDraft(), ...d, preRecord: d.preRecord ?? {} } : emptyDraft());
       setSettlements(s);
     })();
   }, []);
@@ -151,7 +163,7 @@ export function CreateFlow() {
   const origin = settlements.find((s) => s.id === d.originSettlementId)?.name ?? null;
   const record = (
     <Record
-      data={{ role: d.role, name: d.name, memoryLoss: d.memoryLoss, origin, stats: d.stats, past: d.past, registrationNo: null }}
+      data={{ role: d.role, name: d.name, memoryLoss: d.memoryLoss, preRecord: d.preRecord, origin, stats: d.stats, past: d.past, registrationNo: null }}
       stamped={false}
     />
   );
@@ -203,11 +215,12 @@ export function CreateFlow() {
                   legend="기억상실 정도"
                   row
                   value={d.memoryLoss}
-                  onChange={(memoryLoss) => update({ memoryLoss })}
+                  onChange={(memoryLoss) => update({ memoryLoss, preRecord: keepOpen(d.preRecord, memoryLoss) })}
                   note='발현할 때 잃은 기억이에요. 판독지 "발현 이전 기록" 칸이 이만큼 말소됨 띠로 가려져요.'
                   options={(Object.keys(MEMORY_LOSS_LABEL) as MemoryLoss[]).map((m) => ({ value: m, title: MEMORY_LOSS_LABEL[m] }))}
                 />
                 {tried && !d.memoryLoss && <p className="t-field__error" role="alert">기억상실 정도를 골라 주세요.</p>}
+                {d.memoryLoss && <PreRecordFields d={d} update={update} />}
               </>
             )}
             <SelectField
@@ -359,4 +372,43 @@ function stepProblem(step: number, d: CharacterDraft, left: number): string | nu
   if (step === 2 && d.role === 'ability' && !d.memoryLoss) return 'memoryLoss';
   if (step === 3 && left !== 0) return 'stats';
   return null;
+}
+
+/** 발현 이전 기록: 남은 항목만 입력 칸으로, 말소된 항목은 띠로 보여 준다. */
+function PreRecordFields({ d, update }: { d: CharacterDraft; update: (p: Partial<CharacterDraft>) => void }) {
+  const open = PRE_RECORD_ITEMS.length - redactedCount(d.memoryLoss);
+  const gone = PRE_RECORD_ITEMS.slice(open);
+  return (
+    <fieldset className="t-fieldset" style={{ display: 'grid', gap: 12, border: 0, padding: 0, margin: 0 }}>
+      <legend className="t-label" style={{ padding: 0, marginBottom: 8 }}>
+        발현 이전 기록
+      </legend>
+      <p className="t-field__help" style={{ margin: 0 }}>
+        {open > 0
+          ? `기억하는 ${open}개 항목만 적을 수 있어요. 비워 두면 "기재 사항 없음"으로 실려요.`
+          : '모든 항목이 말소돼요. 적을 칸이 없어요. 기억나는 것은 "과거" 칸에 써 주세요.'}
+      </p>
+      {PRE_RECORD_ITEMS.slice(0, open).map((it) => (
+        <TextField
+          key={it.key}
+          label={it.label}
+          optional="비워 둬도 돼요"
+          value={d.preRecord[it.key] ?? ''}
+          onChange={(v) => update({ preRecord: { ...d.preRecord, [it.key]: v } })}
+          max={TEXT_LIMITS.preRecordItem}
+          help={it.hint}
+        />
+      ))}
+      {gone.length > 0 && (
+        <ul className="t-reading" style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 6, fontSize: 15 }}>
+          {gone.map((it) => (
+            <li key={it.key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ minWidth: 56 }}>{it.label}</span>
+              <span className="t-redact">말소됨</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </fieldset>
+  );
 }

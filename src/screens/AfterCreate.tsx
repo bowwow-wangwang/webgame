@@ -2,7 +2,6 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
 import { TEXT_LIMITS } from '../config/balance';
 import { detectPlatform, isStandalone, useIsDesktop, type Platform } from '../lib/useIsDesktop';
-import { useSession } from '../lib/session';
 import { clockKST, remaining } from '../lib/time';
 import { josa } from '../lib/josa';
 import { api } from '../services';
@@ -12,7 +11,9 @@ import { Loading } from '../ui/Loading';
 import { PickGroup, StatTag } from '../ui/Pick';
 import { Px } from '../ui/Px';
 import { useToast } from '../ui/Toast';
-import { SEND_KIND_LABEL, statLabel, type ActiveSend, type Character, type Place, type QnaPrompt, type SendOptions } from '../types/domain';
+import { SEND_KIND_LABEL, statLabel, type ActiveSend, type Character, type Condition, type Place, type QnaPrompt, type SendOptions } from '../types/domain';
+import { ContaminationGauge } from '../ui/Gauge';
+import { GuardSwitch } from '../ui/Switch';
 import { Record } from './create/Record';
 
 function useCharacter(id: string | undefined) {
@@ -68,7 +69,7 @@ export function RegisteredScreen() {
         </h1>
       </div>
       <Record
-        data={{ role: c.role, name: c.name, memoryLoss: c.memoryLoss, origin: c.originSettlement?.name ?? null, stats: c.stats, past: c.past, registrationNo: c.registrationNo }}
+        data={{ role: c.role, name: c.name, memoryLoss: c.memoryLoss, preRecord: c.preRecord ?? {}, origin: c.originSettlement?.name ?? null, stats: c.stats, past: c.past, registrationNo: c.registrationNo }}
         stamped
       />
       {prompt && (
@@ -193,13 +194,6 @@ export function InstallScreen() {
   );
 }
 
-/** 보내두기 메뉴: 캐릭터를 아직 고르지 않았으면 첫 캐릭터로 간다. */
-export function SendIndex() {
-  const { characters } = useSession();
-  const first = characters[0];
-  return <Navigate to={first ? `/send/${first.id}` : '/create/1'} replace />;
-}
-
 /** M-13 · M-21 보내두기 (출동, 근무, 다녀오기 공통의 가벼운 판). 정부 작전판 연출은 다음 묶음에서 입힌다. */
 export function SendScreen() {
   const { id } = useParams();
@@ -213,6 +207,8 @@ export function SendScreen() {
   const [target, setTarget] = useState<string | null>(null);
   const [method, setMethod] = useState<string | null>(null);
   const [hours, setHours] = useState<string>('4');
+  const [boost, setBoost] = useState(false);
+  const [cond, setCond] = useState<Condition | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -221,39 +217,60 @@ export function SendScreen() {
       setOpts(o);
       setTarget(o.targets[0]?.id ?? null);
     });
+    void api.getCondition(id).then(setCond);
   }, [id]);
   if (c === null) return <Navigate to="/home" replace />;
   if (!c || !opts || !id) return <Frame plate="보내두기" ingame={!first}><Loading text="보낼 곳을 불러오는 중" /></Frame>;
 
   const kind = SEND_KIND_LABEL[opts.kind];
-  const ready = target && method && hours;
+  const ready = target && method && hours && !opts.blocked;
+  const dispatch = opts.kind === 'dispatch';
 
   async function submit() {
     if (!ready || busy || !id || !target || !method) return;
     setBusy(true);
-    const r = await api.startSend({ characterId: id, targetId: target, methodId: method, hours: Number(hours) });
+    const r = await api.startSend({ characterId: id, targetId: target, methodId: method, hours: Number(hours), boost: dispatch && boost });
     setBusy(false);
     if (!r.ok) return toast({ kind: 'danger', text: r.message });
     if (first) return nav(`/sent/${r.value.id}?first=1`, { replace: true });
-    toast({ kind: 'ok', text: `${c?.name}의 ${josa(`${r.value.hours}시간 ${kind}`, '을/를')} 보냈어요. ${clockKST(r.value.endsAt)}에 돌아와요.` });
-    nav('/home');
+    // 진행 화면이 곧 확인이다 (언제 끝나는지, 어디에 머무는지).
+    nav(`/run/${r.value.id}`);
   }
 
   return (
     <Frame
       plate="보내두기"
       ingame={!first}
-      header={<ScreenHeader title={`${c.name}의 ${kind}`} sub={first ? '처음 안내 2 / 3' : '보내두기'} back={{ to: first ? '/home' : '/home', label: '상황판으로' }} />}
+      header={
+        <ScreenHeader
+          title={`${c.name}의 ${kind}`}
+          sub={first ? '처음 안내 2 / 3' : '보내두기'}
+          back={{ to: first ? '/home' : '/send', label: first ? '상황판으로' : '보내두기로' }}
+          right={dispatch ? <span className="t-tag t-tag--gov" style={{ whiteSpace: 'nowrap' }}>정부 회선</span> : undefined}
+        />
+      }
       onSubmit={() => void submit()}
       bar={<FormBar next={busy ? '보내는 중…' : `${hours}시간 ${kind} 보내기`} nextDisabled={!ready} busy={busy} />}
       scrollLabel={`${kind} 고르기`}
       deskClass="app-desk--narrow"
       keys={[['[↑/↓]', '고르기'], ['[Enter]', '보내기']]}
     >
+      {dispatch && <div className="t-hazard t-hazard--thin" aria-hidden="true" style={{ margin: '-16px -14px 0' }} />}
       {first && (
         <p className="t-reading" style={{ margin: 0, fontSize: 15 }}>
           보내 두면 접속하지 않아도 시간이 흘러 끝나요. 끝나면 결과와 함께 말 걸 사람이 생겨요.
         </p>
+      )}
+      {cond && cond.contamination !== null && <ContaminationGauge c={cond} />}
+      {opts.blocked && (
+        <div className="t-toast" role="status" style={{ animation: 'none', display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 8 }}>
+          <span className="t-toast__text">{opts.blocked}</span>
+          {cond?.level === 'overload' && (
+            <Link className="t-btn t-btn--outline" to={`/rest/${c.id}`}>
+              휴식하러 가기
+            </Link>
+          )}
+        </div>
       )}
       <PickGroup
         legend={opts.targetLegend}
@@ -271,9 +288,19 @@ export function SendScreen() {
           value: m.id,
           title: m.label,
           keyHint: desktop ? String(i + 1) : undefined,
-          side: <StatTag label={statLabel(m.stat, c.role)} value={c.stats[m.stat]} />,
+          side: <StatTag label={statLabel(boost && dispatch ? 'craft' : m.stat, c.role)} value={Math.max(1, c.stats[boost && dispatch ? 'craft' : m.stat] - opts.penalty)} />,
         }))}
+        note={opts.penalty ? `오염이 높아 판정 수치가 ${opts.penalty} 내려가 있어요. 꼬리표는 내려간 값이에요.` : undefined}
       />
+      {opts.boost && (
+        <GuardSwitch
+          label="능력을 아끼지 않는다"
+          checked={boost}
+          onChange={setBoost}
+          risk="오염이 더 쌓이는 선택"
+          note={`${boost ? '' : '켜면 '}능력으로 판정해요. 성공하면 기여가 크게 오르고, 오염은 ${opts.boost.extraContamination} 더 쌓여요.`}
+        />
+      )}
       <PickGroup
         legend="시간"
         row

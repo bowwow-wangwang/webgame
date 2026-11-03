@@ -153,3 +153,22 @@ button, input, select, textarea { font-family: inherit; }
 .t-tab[aria-pressed="true"] { --_bc: var(--accent); --_bg: var(--accent); color: var(--on-accent); font-weight: 700; }
 @media (max-width: 380px) { .app-mug { height: 190px; } }
 .app-roletabs .t-tab { padding: 0 6px; font-size: 13px; white-space: nowrap; }
+
+/* 보내두기 목록, 진행, 결과 */
+.app-hub { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.app-hub__card { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px solid var(--line-strong); background: var(--surface-raised); }
+.app-hub__who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.app-hub__text { display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0; }
+.app-hub__text b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app-hub__line { display: flex; gap: 6px; align-items: center; margin: 0; font-size: 14px; }
+.app-hub__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.app-hub__actions .t-btn { flex-grow: 1; }
+.app-hub__actions .t-btn--outline { flex-grow: 0; min-width: 88px; }
+.app-runbox { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line-strong); }
+.app-met { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.app-met li { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.app-push { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px dashed var(--line-strong); }
+.app-push .t-btn { align-self: flex-start; }
+.app-dev { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px dashed var(--line); background: var(--foundation-wash); }
+.app-today__text .t-status { align-self: flex-start; margin-top: 2px; }
+.app-desk__right:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
