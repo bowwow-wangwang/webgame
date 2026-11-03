@@ -13,11 +13,11 @@ import { Sheet } from '../ui/Sheet';
 import { useToast } from '../ui/Toast';
 import zoneImg from '../assets/sample/zone-evron-wide.webp';
 
-type LegalKind = 'terms' | 'privacy' | 'rules';
-const LEGAL_TITLE: Record<LegalKind, string> = { terms: '이용약관', privacy: '개인정보 처리방침', rules: '이용 규칙' };
+export type LegalKind = 'terms' | 'privacy' | 'rules';
+export const LEGAL_TITLE: Record<LegalKind, string> = { terms: '이용약관', privacy: '개인정보 처리방침', rules: '이용 규칙' };
 
 /** 약관 읽기: 새 창이 아니라 같은 화면 위에 열리고, 닫으면 쓰던 칸이 그대로다. 글은 운영자가 채운다. */
-function LegalSheet({ kind, onClose }: { kind: LegalKind; onClose: () => void }) {
+export function LegalSheet({ kind, onClose }: { kind: LegalKind; onClose: () => void }) {
   return (
     <Sheet title={LEGAL_TITLE[kind]} onClose={onClose} labelId="legal-t">
       <p className="t-reading" style={{ margin: 0 }}>

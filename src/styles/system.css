@@ -840,3 +840,24 @@ button.t-upload__slot:focus-visible { outline: 2px solid var(--focus); outline-o
   .t-switch__px--mid { animation: none; opacity: 0; }
 }
 .t-chat__face--empty { display: block; box-sizing: border-box; background: none; border: 1px dashed var(--line-strong); clip-path: none; }
+
+/* 단말 설정에서 켠 동작 줄이기 (기기 설정과 같은 규칙) */
+[data-motion="reduce"] .t-pick:active { transform: none; }
+[data-motion="reduce"] .t-pick[aria-checked="true"] .t-pick__lamp { box-shadow: inset 0 0 0 3px var(--surface-raised); }
+[data-motion="reduce"] .t-glow, [data-motion="reduce"] .t-readout__num { text-shadow: none; }
+[data-motion="reduce"] .t-app__screen::after { display: none; }
+[data-motion="reduce"] .t-vital__wave { filter: none; }
+[data-motion="reduce"] .t-navbar__item[aria-current="page"]::before { box-shadow: none; }
+[data-motion="reduce"] .t-btn:active { transform: none; }
+[data-motion="reduce"] .t-btn[aria-busy="true"]::before { animation: none; }
+[data-motion="reduce"] .t-vital__track, [data-motion="reduce"] .t-vital__beat, [data-motion="reduce"] .t-feed__rec::before, [data-motion="reduce"] .t-banner::before { animation: none; }
+[data-motion="reduce"] .t-banner::before { display: none; }
+[data-motion="reduce"] .t-vital__num, [data-motion="reduce"] .t-feed__sec { animation-play-state: paused; }
+[data-motion="reduce"] .t-readout--roll, [data-motion="reduce"] .t-scale__hit, [data-motion="reduce"] .t-roll-verdict .t-tune__text, [data-motion="reduce"] .t-roll-verdict .t-tune__bars i, [data-motion="reduce"] .t-roll-verdict::after, [data-motion="reduce"] .t-readout__quip, [data-motion="reduce"] .t-readout__flash, [data-motion="reduce"] .t-readout--fumble { animation: none; }
+[data-motion="reduce"] .t-readout__flash { display: none; }
+[data-motion="reduce"] .t-crit-wave path { animation: none; stroke-dashoffset: 0; opacity: .35; }
+[data-motion="reduce"] .t-readout--fumble .t-roll-verdict::after { opacity: .3; }
+[data-motion="reduce"] .t-flag { transition: none; }
+[data-motion="reduce"] .t-dialog, [data-motion="reduce"] .t-toast, [data-motion="reduce"] .t-writ, [data-motion="reduce"] .t-writ__slot .t-roundstamp { animation: none; }
+[data-motion="reduce"] .t-skel::after, [data-motion="reduce"] .t-loading__text::after { animation: none; }
+[data-motion="reduce"] .t-switch__px--mid { animation: none; opacity: 0; }

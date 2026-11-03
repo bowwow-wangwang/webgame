@@ -1,6 +1,7 @@
 import type {
   ActiveSend,
   Condition,
+  NotificationSettings,
   Fork,
   ForkOutcome,
   RestKind,
@@ -82,6 +83,10 @@ export interface GameService {
     setNextRoll(value: number | null): Promise<void>;
     setContamination(characterId: string, value: number): Promise<void>;
   };
+
+  // ── 단말 설정 ──
+  getNotificationSettings(): Promise<NotificationSettings>;
+  saveNotificationSettings(next: NotificationSettings): Promise<Result<NotificationSettings>>;
 
   // ── 대화 ──
   /** 지금 열려 있는 장소 채널(사람 수에 맞춰 서버가 연다)과 내 1:1 방. */

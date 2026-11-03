@@ -172,3 +172,9 @@ button, input, select, textarea { font-family: inherit; }
 .app-dev { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px dashed var(--line); background: var(--foundation-wash); }
 .app-today__text .t-status { align-self: flex-start; margin-top: 2px; }
 .app-desk__right:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+
+/* 단말 설정 */
+.app-setting { display: flex; flex-direction: column; gap: 10px; }
+.app-setting__list { display: flex; flex-direction: column; gap: 4px; }
+.app-setting__links { display: flex; flex-wrap: wrap; gap: 4px 8px; }
+.app-notice-preview { display: flex; gap: 10px; align-items: center; padding: 12px; border: 1px solid var(--line-strong); background: var(--surface-raised); font-size: 15px; }
