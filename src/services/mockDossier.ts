@@ -16,6 +16,7 @@ import {
   type Role,
   type Stats,
 } from '../types/domain';
+import { dateKST } from '../lib/time';
 import { dayRecords } from './mockDay';
 import { mockStore } from './mock';
 import type { DossierKeys, GameService } from './types';
@@ -103,6 +104,12 @@ function relationsOf(id: string): Relation[] {
     .filter((r): r is Relation => r !== null);
 }
 
+// 판독지의 선택 기록은 "10.29"처럼 짧게 적는다 (한국 시간).
+function shortDate(iso: string) {
+  const { month, day } = dateKST(new Date(iso));
+  return `${month}.${String(day).padStart(2, '0')}`;
+}
+
 const SLIP_TITLE = { dispatch: '출동 통지', shift: '근무 일지', outing: '다녀오기 표', rest: '휴식 기록' } as const;
 
 export const mockDossier: Pick<GameService, DossierKeys> = {
@@ -128,7 +135,7 @@ export const mockDossier: Pick<GameService, DossierKeys> = {
         // 오염은 서버가 출동과 휴식으로 계산한다 (mockDay).
         contamination: dayRecords.condition(c).week,
         // 갈림길에서 고른 것이 한 줄씩 쌓인다. 숨긴 줄도 주인에게는 보인다.
-        choices: dayRecords.choices(c.id),
+        choices: dayRecords.choices(c.id).map((l) => ({ ...l, date: shortDate(l.date) })),
         qna: [],
         memo: null,
         relations: relationsOf(id),

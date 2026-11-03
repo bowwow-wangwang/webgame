@@ -1,6 +1,7 @@
 // 하루 한 바퀴의 가짜 서버: 보내두기 정산, 판정, 갈림길, 오염, 휴식.
 // 진짜 서버에서는 이 계산이 전부 Postgres 함수와 예약 작업(틱)에서 일어난다. 화면은 결과만 받는다.
 import { BALANCE, DAY } from '../config/balance';
+import { OPEN_DATE } from '../config/game';
 import { josa } from '../lib/josa';
 import {
   GRADE_LABEL,
@@ -17,7 +18,6 @@ import {
   type Persona,
   type RestKind,
   type RestOption,
-  type Role,
   type Roll,
   type SendResult,
   type StatKey,
@@ -190,16 +190,38 @@ const presentAt = (place: string) => (PRESENT[place] ?? []).map((id) => mockOthe
 
 // ── 갈림길 ──
 
-function forksFor(role: Role) {
-  return FORKS.filter((f) => f.roles === 'all' || f.roles.includes(role));
+/** 오늘(한국 시간)이 그 계절 갈림길의 기간 안인가. */
+function inSeason(season: NonNullable<ForkSeed['season']>, t = now()) {
+  const d = new Date(t + 9 * H);
+  const y = d.getUTCFullYear();
+  const within = (m: number, day: number, days: number) =>
+    [y - 1, y].some((yy) => {
+      const start = Date.UTC(yy, m - 1, day);
+      return d.getTime() >= start && d.getTime() < start + days * 24 * H;
+    });
+  if (season === 'snow') return within(DAY.seasons.snow.month, DAY.seasons.snow.day, DAY.seasons.snow.days);
+  if (season === 'rain') return within(DAY.seasons.rain.month, DAY.seasons.rain.day, DAY.seasons.rain.days);
+  if (!OPEN_DATE) return false;
+  const [, m, day] = OPEN_DATE.split('-').map(Number);
+  return within(m ?? 1, day ?? 1, DAY.seasons.truceDays);
+}
+
+function forksFor(c: StoredChar) {
+  const fit = FORKS.filter(
+    (f) => (f.roles === 'all' || f.roles.includes(c.role)) && (!f.requires || !!c.originSettlement) && (!f.season || inSeason(f.season)),
+  );
+  // 계절 갈림길은 그 기간 안에서 먼저 나온다.
+  const seasonal = fit.filter((f) => f.season);
+  return { all: fit, seasonal };
 }
 
 function assignFork(c: StoredChar, run: RunState) {
-  const pool = forksFor(c.role);
+  const { all: pool, seasonal } = forksFor(c);
   let seen = day.seenForks[c.id] ?? [];
-  // 그 역할의 갈림길을 모두 본 뒤에야 다시 돌린다.
-  if (pool.every((f) => seen.includes(f.code))) seen = [];
-  const f = pickOne(pool.filter((x) => !seen.includes(x.code)));
+  const freshSeason = seasonal.filter((x) => !seen.includes(x.code));
+  // 그 역할의 갈림길을 모두 본 뒤에야 다시 돌린다 (계절 갈림길은 돌리지 않는다).
+  if (!freshSeason.length && pool.filter((x) => !x.season).every((f) => seen.includes(f.code))) seen = seen.filter((code) => FORKS.find((x) => x.code === code)?.season);
+  const f = freshSeason.length ? pickOne(freshSeason) : pickOne(pool.filter((x) => !x.season && !seen.includes(x.code)));
   day.seenForks[c.id] = [...seen, f.code];
   run.forkCode = f.code;
   const slot = f.who;
@@ -225,24 +247,36 @@ function fill(text: string, map: Record<string, string>) {
 
 function forkMap(f: ForkSeed, run: RunState, c: StoredChar, place: string) {
   const met = run.forkMet?.[0];
-  const map: Record<string, string> = { '{캐릭터}': c.name, '{구역}': place };
+  const origin = c.originSettlement?.name;
+  const map: Record<string, string> = {
+    '{캐릭터}': c.name,
+    '{구역}': place,
+    // 정착지가 정해지지 않은 자리는 테스트용으로 새벽뜰을 쓴다 (진짜는 그 캐릭터가 머무는 정착지).
+    '{정착지}': origin ?? '새벽뜰',
+    '{출신 정착지}': origin ?? '새벽뜰',
+    '{등록번호}': c.registrationNo ?? '번호 없음',
+  };
   if (f.who) map[f.who.slot] = met?.name ?? f.who.npc;
   return map;
 }
 
 function outcomeOf(c: StoredChar, o: OptionSeed, auto: boolean, map: Record<string, string>): { out: ForkOutcome; effect: RunState['forkEffect'] } {
   // 자동 처리는 판정하지 않고, 선택 기록에도 남기지 않는다.
-  const r = !auto && o.stat ? roll(c, o.stat) : null;
+  // 둘 중 높은 쪽으로 판정하는 선택지가 있다 (예: 전문 또는 지능).
+  const stat = o.stat && o.statAlt && c.stats[o.statAlt] > c.stats[o.stat] ? o.statAlt : o.stat;
+  const r = !auto && stat ? roll(c, stat) : null;
   const ok = !r || isSuccess(r.grade);
+  const great = !!r && (r.grade === 'extreme' || r.grade === 'crit');
   let text = ok ? o.result : (o.fail ?? `${o.result} 생각보다 오래 걸렸다.`);
-  if (r && (r.grade === 'extreme' || r.grade === 'crit') && o.extreme) text += ` ${o.extreme}`;
+  if (great && o.extreme) text += ` 극단적 성공: ${o.extreme}.`.replace('..', '.');
   const record = auto ? null : ok ? (o.record ?? null) : o.failRecord !== undefined ? o.failRecord : (o.record ?? null);
   const paper = auto ? null : ok ? (o.paper ?? null) : o.failPaper !== undefined ? o.failPaper : (o.paper ?? null);
-  let contamination = o.contamination ?? 0;
-  if (r?.grade === 'extreme' && contamination > 0) contamination = 0;
+  let contamination = (o.contamination ?? 0) + (ok ? 0 : (o.failContamination ?? 0));
+  if (great && contamination > 0 && /오염/.test(o.extreme ?? '')) contamination = 0;
   // 오염은 능력자에게만 쌓인다. 다른 역할은 오염 대신 덤 하나를 포기하고, 문구도 바뀐다.
   const lostBonus = c.role !== 'ability' && contamination > 0;
-  if (lostBonus) text = text.replace('오염도 그만큼 더 쌓였다.', '몸이 무겁다.');
+  if (lostBonus) text = text.replace(/오염[이도]? (그만큼 |조금 )?더 쌓였다\./, '몸이 무겁다.');
+  const item = great && o.extremeItem ? o.extremeItem : ok ? (o.item ?? null) : null;
   return {
     out: {
       optionId: o.id,
@@ -253,7 +287,7 @@ function outcomeOf(c: StoredChar, o: OptionSeed, auto: boolean, map: Record<stri
       record: record ? fill(record, map) : null,
       paper,
     },
-    effect: { contamination: c.role === 'ability' ? contamination : 0, item: o.item ?? null, lostBonus },
+    effect: { contamination: c.role === 'ability' ? contamination : 0, item, lostBonus },
   };
 }
 
