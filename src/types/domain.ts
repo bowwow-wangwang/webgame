@@ -123,6 +123,8 @@ export interface Character {
 export interface Session {
   accountId: string;
   email: string;
+  /** 운영자 계정 (admins 테이블). 화면은 입구만 보이고 숨기는 데 쓰고, 권한은 서버 함수가 다시 확인한다. */
+  admin?: boolean;
 }
 
 export interface QnaPrompt {
@@ -533,3 +535,80 @@ export interface NotificationSettings {
   /** 밤 시간에는 보내지 않고 아침에 묶어 보낸다. 기본으로 켜져 있다. */
   quietNight: boolean;
 }
+
+// ── 운영 (신고와 조치) ──
+
+export type ReportTargetKind = 'message' | 'profile' | 'image' | 'qna';
+
+export const REPORT_TARGET_LABEL: Record<ReportTargetKind, string> = {
+  message: '대화',
+  profile: '판독지 글',
+  image: '캐릭터 이미지',
+  qna: '문답 답',
+};
+
+/** 같은 대상에 들어온 신고를 한 건으로 묶은 것. */
+export interface ReportCase {
+  id: string;
+  targetKind: ReportTargetKind;
+  /** 신고된 내용 일부 (운영자에게만). */
+  excerpt: string;
+  where: string;
+  author: Persona;
+  /** 작성자 계정 (운영자에게만 보이는 짧은 표시). */
+  account: { id: string; label: string; characters: number; sanctions: number };
+  reasons: { reason: ReportReason; count: number }[];
+  count: number;
+  /** 신고 메모 (신고한 사람이 남긴 말). 누가 신고했는지는 보여 주지 않는다. */
+  memos: string[];
+  firstAt: string;
+  lastAt: string;
+  status: 'open' | 'done';
+  content: 'shown' | 'hidden' | 'deleted';
+  /** 신고가 기준 수 이상 쌓여 운영자 확인 전까지 자동으로 숨겼다. */
+  autoHidden: boolean;
+  actions: ModAction[];
+}
+
+export type ModActionKind = 'hide' | 'unhide' | 'delete' | 'dismiss' | 'close' | 'warn' | 'suspend' | 'ban' | 'lift';
+
+export const MOD_ACTION_LABEL: Record<ModActionKind, string> = {
+  hide: '숨김',
+  unhide: '다시 보임',
+  delete: '지움',
+  dismiss: '문제없음으로 닫음',
+  close: '처리 끝',
+  warn: '경고',
+  suspend: '기간 정지',
+  ban: '영구 정지',
+  lift: '제재 풂',
+};
+
+/** 조치 기록 (moderation_log). 운영자가 방치하지 않았다는 근거가 된다. */
+export interface ModAction {
+  id: string;
+  at: string;
+  by: string;
+  kind: ModActionKind;
+  /** 무엇에 대한 조치인지 한 줄. */
+  target: string;
+  reportId: string | null;
+  memo: string;
+  /** 기간 정지면 풀리는 때. */
+  until: string | null;
+}
+
+export interface Sanction {
+  id: string;
+  accountId: string;
+  accountLabel: string;
+  kind: 'warn' | 'suspend' | 'ban';
+  at: string;
+  until: string | null;
+  reason: string;
+  active: boolean;
+}
+
+export type ModRequest =
+  | { kind: 'hide' | 'unhide' | 'delete' | 'dismiss' | 'close' | 'warn' | 'ban'; memo: string }
+  | { kind: 'suspend'; memo: string; days: number };

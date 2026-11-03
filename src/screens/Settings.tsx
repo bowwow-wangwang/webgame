@@ -168,6 +168,17 @@ export function SettingsScreen() {
         />
       </Section>
 
+      {session?.admin && (
+        <Section id="st-admin" title="운영">
+          <Link className="t-btn t-btn--outline" to="/admin" style={{ alignSelf: 'flex-start' }}>
+            신고와 조치 열기
+          </Link>
+          <p className="t-field__help" style={{ margin: 0 }}>
+            운영자 계정에만 보여요.
+          </p>
+        </Section>
+      )}
+
       <Section id="st-account" title="계정">
         <div className="t-cells" style={{ gridTemplateColumns: '1fr' }}>
           <div className="t-cell">

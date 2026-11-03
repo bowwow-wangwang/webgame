@@ -52,6 +52,8 @@ interface TalkStore {
   lastSpeaker: Record<string, string>;
   talkedWith: string[];
   seededFor: string | null;
+  /** 운영자가 숨긴 말 (신고 조치). 지운 말은 목록에서 아예 빠진다. */
+  hidden?: string[];
 }
 const KEY = 'webgame.mock.talk.v1';
 function load(): TalkStore {
@@ -110,7 +112,7 @@ function seed() {
 }
 
 function visible(m: Message) {
-  return !m.speaker || !t.blocked.includes(m.speaker.id);
+  return (!m.speaker || !t.blocked.includes(m.speaker.id)) && !(t.hidden ?? []).includes(m.id);
 }
 
 function lastLineOf(roomId: string) {
@@ -208,10 +210,6 @@ export const mockTalk: TalkService = {
     save();
     return wait({ ok: true, value: undefined });
   },
-  async report() {
-    // 실제로는 reports에 남기고, 쌓이면 자동으로 숨기며, 운영자 조치는 moderation_log에 남는다.
-    return wait({ ok: true, value: undefined }, 300);
-  },
   async block(personaId) {
     if (!t.blocked.includes(personaId)) t.blocked.push(personaId);
     save();
@@ -256,6 +254,25 @@ export const mockTalk: TalkService = {
   },
   async setLastSpeaker(roomId, characterId) {
     t.lastSpeaker[roomId] = characterId;
+    save();
+  },
+};
+
+/** 운영 가짜 서버(mockAdmin)가 신고된 말을 찾고, 숨기고, 지우려고 쓴다. */
+export const talkModeration = {
+  seed: () => seed(),
+  find: (id: string) => t.messages.find((m) => m.id === id) ?? null,
+  firstBy: (personaId: string) => t.messages.find((m) => m.speaker?.id === personaId && m.kind === 'say') ?? null,
+  roomName: (roomId: string) => PLACES.find((p) => p.id === roomId)?.name ?? '1:1 대화',
+  setHidden(id: string, on: boolean) {
+    const h = new Set(t.hidden ?? []);
+    if (on) h.add(id);
+    else h.delete(id);
+    t.hidden = [...h];
+    save();
+  },
+  remove(id: string) {
+    t.messages = t.messages.filter((m) => m.id !== id);
     save();
   },
 };
