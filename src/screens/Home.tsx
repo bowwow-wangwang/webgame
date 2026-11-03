@@ -118,18 +118,3 @@ export function HomeScreen() {
     </Frame>
   );
 }
-
-/** 다음 묶음에서 만들 화면의 자리 (기록, 단말 설정). 메뉴가 끊기지 않게 둔다. */
-export function PendingScreen({ title, ch, what }: { title: string; ch: string; what: string }) {
-  return (
-    <Frame plate={title} ingame header={<ScreenHeader title={title} sub={ch} back={{ to: '/home', label: '상황판으로' }} />} scrollLabel={title}>
-      <div className="t-empty" style={{ border: '1px solid var(--line)' }}>
-        <svg className="t-empty__line" viewBox="0 0 260 28" aria-hidden="true">
-          <path d="M0 14 H260" />
-        </svg>
-        <p className="t-empty__title">아직 열리지 않은 칸이에요</p>
-        <p className="t-empty__text">다음 작업 묶음에서 만들어요: {what}.</p>
-      </div>
-    </Frame>
-  );
-}

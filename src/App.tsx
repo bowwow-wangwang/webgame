@@ -8,7 +8,8 @@ import { JoinScreen, LoginScreen } from './screens/Auth';
 import { CreateFlow } from './screens/create/CreateFlow';
 import { InstallScreen, RegisteredScreen, SendScreen, SentScreen } from './screens/AfterCreate';
 import { RestIndex, RestScreen, ResultScreen, RunScreen, SendHub } from './screens/day/DayScreens';
-import { HomeScreen, PendingScreen } from './screens/Home';
+import { HomeScreen } from './screens/Home';
+import { SettingsScreen } from './screens/Settings';
 import { DmScreen, PlaceScreen, TalkScreen } from './screens/talk/TalkScreens';
 import { DirectoryScreen, DossierScreen, RecordScreen } from './screens/dossier/DossierScreens';
 
@@ -70,7 +71,7 @@ const router = createHashRouter([
       { path: '/directory', element: <RequireSession><DirectoryScreen /></RequireSession> },
       { path: '/dossier/:id', element: <RequireSession><DossierScreen key="p1" page={1} /></RequireSession> },
       { path: '/dossier/:id/log', element: <RequireSession><DossierScreen key="p2" page={2} /></RequireSession> },
-      { path: '/settings', element: <RequireSession><PendingScreen title="단말" ch="CH.05" what="단말 설정과 알림 설정" /></RequireSession> },
+      { path: '/settings', element: <RequireSession><SettingsScreen /></RequireSession> },
       { path: '*', element: <Navigate to="/" replace /> },
     ],
   },

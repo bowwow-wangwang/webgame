@@ -44,6 +44,31 @@ const fonts = tokens.type.fonts
   .map((f) => `@font-face { font-family: '${f.family}'; src: url('../assets/${f.file}') format('woff2'); font-weight: ${f.weight}; font-display: swap; }`)
   .join('\n');
 
+// 단말 설정의 "동작 줄이기"를 켜면 <html data-motion="reduce">가 붙는다.
+// 기기 설정(prefers-reduced-motion)과 같은 규칙을 그 표시에도 걸어, 규칙을 두 곳에 따로 적지 않는다.
+function motionCopies(css) {
+  const head = '@media (prefers-reduced-motion: reduce)';
+  const copies = [];
+  let at = css.indexOf(head);
+  while (at >= 0) {
+    const open = css.indexOf('{', at);
+    let depth = 0;
+    let end = open;
+    for (; end < css.length; end++) {
+      if (css[end] === '{') depth++;
+      else if (css[end] === '}' && --depth === 0) break;
+    }
+    const inner = css.slice(open + 1, end);
+    for (const m of inner.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      const sel = m[1].trim().split(',').map((x) => `[data-motion="reduce"] ${x.trim()}`).join(', ');
+      copies.push(`${sel} { ${m[2].trim()} }`);
+    }
+    at = css.indexOf(head, end);
+  }
+  return copies.join('\n');
+}
+body += '\n/* 단말 설정에서 켠 동작 줄이기 (기기 설정과 같은 규칙) */\n' + motionCopies(body) + '\n';
+
 let out = '/* 만들어진 파일: design/build-css.mjs가 design/tokens.json과 design/system.css.tpl에서 만든다. 손으로 고치지 않는다. */\n';
 out += fonts + '\n';
 out += `:root, [data-theme="terminal"] { ${blocks[themes[0]].join(' ')} }\n`;

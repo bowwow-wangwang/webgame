@@ -514,3 +514,22 @@ export interface DirectoryEntry {
   /** 아직 대화해 본 적 없는 사람 (다른 계정만). */
   newToMe: boolean;
 }
+
+// ── 단말 설정 ──
+
+/** 알림 종류. 약속(동행 탐색)과 교환은 그 기능이 열릴 때 더한다. */
+export type NotifyKind = 'send' | 'talk' | 'relation' | 'care';
+
+export const NOTIFY_KINDS: readonly { kind: NotifyKind; label: string; desc: string }[] = [
+  { kind: 'send', label: '보내두기', desc: '출동, 근무, 다녀오기, 휴식이 끝났을 때와 갈림길이 왔을 때' },
+  { kind: 'talk', label: '말 걸기', desc: '내 캐릭터에게 누군가 말을 걸었을 때' },
+  { kind: 'relation', label: '관계 신청', desc: '다른 캐릭터가 관계를 신청했을 때' },
+  { kind: 'care', label: '케어 요청', desc: '상담·치료 요청을 받았거나, 내 요청을 누가 받았을 때' },
+];
+
+/** 계정마다 서버에 저장한다 (notification_settings). */
+export interface NotificationSettings {
+  kinds: Record<NotifyKind, boolean>;
+  /** 밤 시간에는 보내지 않고 아침에 묶어 보낸다. 기본으로 켜져 있다. */
+  quietNight: boolean;
+}

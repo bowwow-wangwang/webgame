@@ -11,6 +11,7 @@ import {
   type Result,
   type SendOptions,
   type WorkKind,
+  type NotificationSettings,
   type Session,
   type Settlement,
 } from '../types/domain';
@@ -27,6 +28,7 @@ interface Store {
   sends: ActiveSend[];
   usedCodes: string[];
   nextRegNo: number;
+  notify?: NotificationSettings;
 }
 
 const KEY = 'webgame.mock.v1';
@@ -116,6 +118,9 @@ export const SEND_TABLE: Record<WorkKind, Pick<SendOptions, 'kind' | 'targetLege
     ],
   },
 };
+
+// 처음에는 모든 종류를 켜 두고, 밤 시간에는 보내지 않는다 (docs/tech.md 알림).
+const defaultNotify = (): NotificationSettings => ({ kinds: { send: true, talk: true, relation: true, care: true }, quietNight: true });
 
 function mine() {
   // 칸이 생기기 전에 저장된 테스트 캐릭터에도 빈 값을 채운다.
@@ -236,6 +241,15 @@ export const mockService: Omit<GameService, TalkKeys | DossierKeys | DayKeys> = 
     return wait({ ok: true, value: undefined });
   },
 
+  async getNotificationSettings() {
+    return wait(store.notify ?? defaultNotify(), 120);
+  },
+  async saveNotificationSettings(next) {
+    if (!store.session) return wait({ ok: false, message: '다시 로그인해 주세요.' });
+    store.notify = next;
+    save();
+    return wait({ ok: true, value: next }, 200);
+  },
   async getBusiestPlace(): Promise<Place | null> {
     return wait({ id: 'lounge', name: '재단 기숙사 휴게실', staying: 4 }, 120);
   },
