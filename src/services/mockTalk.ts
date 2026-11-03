@@ -9,6 +9,7 @@ import imgMess from '../assets/sample/feed-mess.webp';
 import imgCamp from '../assets/sample/feed-camp.webp';
 import type { InboxItem, Message, Persona, Result, Room, StayStatus } from '../types/domain';
 import { mockStore } from './mock';
+import { moderation } from './moderation';
 import type { GameService, TalkKeys } from './types';
 
 type TalkService = Pick<GameService, TalkKeys>;
@@ -29,6 +30,7 @@ const OTHERS: Persona[] = [
 const other = (id: string) => OTHERS.find((o) => o.id === id) as Persona;
 // 하루 한 바퀴(mockDay)가 같은 곳에 있던 캐릭터를 고를 때 쓴다.
 export const mockOthers = OTHERS;
+moderation.registerPersonas(OTHERS);
 
 interface PlaceDef {
   id: string;
@@ -111,6 +113,13 @@ function seed() {
   save();
 }
 
+/** 저장해 둔 말에는 그때의 인물 정보가 들어 있다. 사진이 가려졌을 수 있으니 지금 정보로 바꿔 내준다. */
+function live(m: Message): Message {
+  if (!m.speaker || m.speaker.mine) return m;
+  const now = OTHERS.find((o) => o.id === m.speaker!.id);
+  return now ? { ...m, speaker: { ...now } } : m;
+}
+
 function visible(m: Message) {
   return (!m.speaker || !t.blocked.includes(m.speaker.id)) && !(t.hidden ?? []).includes(m.id);
 }
@@ -165,7 +174,7 @@ export const mockTalk: TalkService = {
   },
   async listMessages(roomId) {
     seed();
-    return wait(t.messages.filter((m) => m.roomId === roomId && visible(m)));
+    return wait(t.messages.filter((m) => m.roomId === roomId && visible(m)).map(live));
   },
   async sendMessage({ roomId, speakerId, text, owner }): Promise<Result<Message>> {
     const sp = myPersonas().find((p) => p.id === speakerId);

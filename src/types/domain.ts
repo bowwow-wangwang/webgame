@@ -471,6 +471,17 @@ export interface QnaLine {
   answer: string;
 }
 
+/** 운영자가 가릴 수 있는 판독지 칸. */
+export type DossierPart = 'ability' | 'past' | 'look' | 'personality' | 'image';
+
+export const DOSSIER_PART_LABEL: Record<DossierPart, string> = {
+  ability: '능력',
+  past: '본인 진술',
+  look: '외형',
+  personality: '성격',
+  image: '사진',
+};
+
 export interface Dossier {
   persona: Persona;
   registrationNo: string | null;
@@ -494,6 +505,8 @@ export interface Dossier {
   memo: { by: string; text: string } | null;
   relations: Relation[];
   createdAt: string;
+  /** 운영자가 숨기거나 지운 칸. 다른 사람에게는 내용 없이 내려온다. */
+  veiled: DossierPart[];
 }
 
 export type ActivityKind = 'dispatch' | 'shift' | 'outing' | 'rest' | 'choice' | 'register';
@@ -567,8 +580,13 @@ export interface ReportCase {
   content: 'shown' | 'hidden' | 'deleted';
   /** 신고가 기준 수 이상 쌓여 운영자 확인 전까지 자동으로 숨겼다. */
   autoHidden: boolean;
+  /** 이미지 신고면 운영자에게 원본을 보여 준다 (숨겼어도). */
+  imageUrl: string | null;
   actions: ModAction[];
 }
+
+/** 판독지에서 무엇을 신고하는지. */
+export type ReportPart = { kind: 'profile'; field: Exclude<DossierPart, 'image'> } | { kind: 'image' } | { kind: 'qna'; id: string };
 
 export type ModActionKind = 'hide' | 'unhide' | 'delete' | 'dismiss' | 'close' | 'warn' | 'suspend' | 'ban' | 'lift';
 

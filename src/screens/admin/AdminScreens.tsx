@@ -197,6 +197,7 @@ export function ReportScreen() {
             <ContentState r={r} />
             <span className={open ? 't-status t-status--warn' : 't-status t-status--ok'}>{open ? '처리 기다림' : '처리함'}</span>
           </span>
+          {r.imageUrl && !deleted && <img className="app-mod-image" src={r.imageUrl} alt={`신고된 이미지: ${r.excerpt}`} />}
           <p className={deleted ? 'app-mod-quote__text app-mod-quote__text--gone' : 'app-mod-quote__text'}>{deleted ? '지운 내용이에요.' : r.excerpt}</p>
         </div>
         <div className="t-cells">
@@ -279,7 +280,7 @@ export function ReportScreen() {
             </button>
           </div>
           <p className="t-field__help" style={{ margin: 0 }}>
-            {r.content === 'hidden' ? '숨긴 내용은 작성자에게만 보여요.' : '숨기면 작성자에게만 보이고, 언제든 다시 보이게 할 수 있어요.'} 문제없음은 자동으로 숨긴 내용을 다시 보이게 하고 신고를 닫아요.
+            {r.content === 'hidden' ? '숨긴 내용은 작성자에게만 보여요.' : '숨기면 작성자에게만 보이고, 언제든 다시 보이게 할 수 있어요.'}{r.targetKind === 'message' ? ' 다른 사람에게는 대화에서 빠져요.' : ' 다른 사람의 판독지에는 "운영자가 가린 내용"으로 보여요.'} 문제없음은 자동으로 숨긴 내용을 다시 보이게 하고 신고를 닫아요.
           </p>
         </section>
       )}

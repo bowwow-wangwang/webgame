@@ -10,6 +10,7 @@ import {
   type Activity,
   type ActivityKind,
   type Dossier,
+  type DossierPart,
   type Role,
   PRE_RECORD_ITEMS,
   redactedCount,
@@ -89,6 +90,18 @@ function Block({ children }: { children: ReactNode }) {
 }
 
 /** 판독지 1쪽: 기록카드 / 인사 카드 / 여행 일지. 장식(도장, 말소 띠)은 글자를 가리지 않게 여백에만. */
+/** 운영자가 가린 칸: 남에게는 가렸다는 말만, 주인에게는 글과 함께 "나에게만 보여요". */
+function Veiled({ d, own, part, text }: { d: Dossier; own: boolean; part: DossierPart; text: string }) {
+  if (!d.veiled.includes(part)) return <>{text || '기재 사항 없음'}</>;
+  if (!own || !text) return <span className="app-veiled">운영자가 가린 내용이에요.</span>;
+  return (
+    <>
+      {text}
+      <span className="app-veiled app-veiled--own">운영자가 숨긴 칸이에요. 나에게만 보여요.</span>
+    </>
+  );
+}
+
 export function DossierPage1({
   d,
   own,
@@ -139,7 +152,11 @@ export function DossierPage1({
           <figure className="t-mug app-mug">
             <span className="t-dossier__clip" aria-hidden="true" />
             <div className="t-mug__photo">
-              {d.persona.portraitUrl ? <img src={d.persona.portraitUrl} alt={`${d.persona.name}의 그림`} /> : <span className="app-mug__empty">사진 없음</span>}
+              {d.persona.portraitUrl ? (
+                <img src={d.persona.portraitUrl} alt={`${d.persona.name}의 그림`} />
+              ) : (
+                <span className="app-mug__empty">{d.veiled.includes('image') ? '운영자가 가린 사진' : '사진 없음'}</span>
+              )}
             </div>
             <figcaption className="t-mug__plate">{d.registrationNo ?? ROLE_LABEL[role]}</figcaption>
           </figure>
@@ -147,7 +164,9 @@ export function DossierPage1({
             {ability && (
               <div className="t-cell t-cell--wide">
                 <span className="t-cell__k">능력</span>
-                <span className="t-cell__v">{d.ability || '기재 사항 없음'}</span>
+                <span className="t-cell__v">
+                  <Veiled d={d} own={own} part="ability" text={d.ability} />
+                </span>
               </div>
             )}
             <div className="t-cell t-cell--wide">
@@ -250,18 +269,24 @@ export function DossierPage1({
         )}
 
         <Bar>본인 진술</Bar>
-        <p className="t-reading app-statement">{d.past || '기재 사항 없음'}</p>
-        {(d.look || d.personality) && (
+        <p className="t-reading app-statement">
+          <Veiled d={d} own={own} part="past" text={d.past} />
+        </p>
+        {(d.look || d.personality || d.veiled.includes('look') || d.veiled.includes('personality')) && (
           <>
             <Bar>외형과 성격</Bar>
             <div className="t-cells">
               <div className="t-cell t-cell--wide">
                 <span className="t-cell__k">외형</span>
-                <span className="t-cell__v app-pre">{d.look || '기재 사항 없음'}</span>
+                <span className="t-cell__v app-pre">
+                  <Veiled d={d} own={own} part="look" text={d.look} />
+                </span>
               </div>
               <div className="t-cell t-cell--wide">
                 <span className="t-cell__k">성격</span>
-                <span className="t-cell__v app-pre">{d.personality || '기재 사항 없음'}</span>
+                <span className="t-cell__v app-pre">
+                  <Veiled d={d} own={own} part="personality" text={d.personality} />
+                </span>
               </div>
             </div>
           </>
