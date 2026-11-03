@@ -15,7 +15,7 @@ import {
   type Session,
   type Settlement,
 } from '../types/domain';
-import type { DayKeys, DossierKeys, GameService, TalkKeys } from './types';
+import type { AdminKeys, DayKeys, DossierKeys, GameService, TalkKeys } from './types';
 
 // 판독지에 쓰는 설정 글도 같이 둔다 (화면용 Character에는 없는 칸).
 export type StoredChar = Character & { ownerId: string; look: string; personality: string; ability: string; statsHidden?: boolean };
@@ -64,6 +64,9 @@ const SETTLEMENTS: Settlement[] = [
 
 // 진짜 서버에서는 운영자가 넣은 금칙어 목록(DB)으로 검사한다. 여기서는 연락처 모양만 흉내 낸다.
 const CONTACT_PATTERN = /(\d{2,3}[-\s]?\d{3,4}[-\s]?\d{4})|(https?:\/\/)|(www\.)|(@[a-z0-9_]{3,})/i;
+
+// 테스트에서는 admin@으로 시작하는 이메일을 운영자로 본다. 진짜는 admins 테이블이 정한다.
+const isTestAdmin = (email: string) => email.startsWith('admin@');
 
 function normalizeCode(code: string) {
   return code.toUpperCase().replace(/[\s-]/g, '');
@@ -127,7 +130,7 @@ function mine() {
   return store.characters.filter((c) => c.ownerId === store.session?.accountId).map((c) => (c.preRecord ? c : Object.assign(c, { preRecord: {} })));
 }
 
-export const mockService: Omit<GameService, TalkKeys | DossierKeys | DayKeys> = {
+export const mockService: Omit<GameService, TalkKeys | DossierKeys | DayKeys | AdminKeys> = {
   async getSession() {
     return wait(store.session, 60);
   },
@@ -135,7 +138,7 @@ export const mockService: Omit<GameService, TalkKeys | DossierKeys | DayKeys> = 
     const a = store.accounts.find((x) => x.email === email.trim().toLowerCase() && x.password === password);
     // 어느 쪽이 틀렸는지 말하지 않는다 (계정이 있는지 알려 주지 않으려고).
     if (!a) return wait({ ok: false, message: '이메일이나 비밀번호가 맞지 않아요.' });
-    store.session = { accountId: a.id, email: a.email };
+    store.session = { accountId: a.id, email: a.email, admin: isTestAdmin(a.email) };
     save();
     return wait({ ok: true, value: store.session });
   },
@@ -156,7 +159,7 @@ export const mockService: Omit<GameService, TalkKeys | DossierKeys | DayKeys> = 
     const id = uid();
     store.accounts.push({ id, email: e, password });
     store.usedCodes.push(n);
-    store.session = { accountId: id, email: e };
+    store.session = { accountId: id, email: e, admin: isTestAdmin(e) };
     save();
     return wait({ ok: true, value: store.session });
   },
@@ -258,6 +261,7 @@ export const mockService: Omit<GameService, TalkKeys | DossierKeys | DayKeys> = 
 // 대화 가짜 서비스(mockTalk)가 내 캐릭터와 보낸 일을 읽으려고 쓴다.
 export const mockStore = {
   mine: () => mine(),
+  session: () => store.session,
   sends: () => store.sends,
   save: () => save(),
   wait,

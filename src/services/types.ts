@@ -1,6 +1,10 @@
 import type {
   ActiveSend,
   Condition,
+  ModAction,
+  ModRequest,
+  ReportCase,
+  Sanction,
   NotificationSettings,
   Fork,
   ForkOutcome,
@@ -88,6 +92,14 @@ export interface GameService {
   getNotificationSettings(): Promise<NotificationSettings>;
   saveNotificationSettings(next: NotificationSettings): Promise<Result<NotificationSettings>>;
 
+  // ── 운영 (운영자만. 서버 함수가 admins 테이블로 다시 확인한다) ──
+  listReports(status: 'open' | 'done'): Promise<ReportCase[]>;
+  getReport(id: string): Promise<ReportCase | null>;
+  actOnReport(id: string, req: ModRequest): Promise<Result<ReportCase>>;
+  listModLog(): Promise<ModAction[]>;
+  listSanctions(): Promise<Sanction[]>;
+  liftSanction(id: string, memo: string): Promise<Result<Sanction>>;
+
   // ── 대화 ──
   /** 지금 열려 있는 장소 채널(사람 수에 맞춰 서버가 연다)과 내 1:1 방. */
   listRooms(): Promise<Room[]>;
@@ -131,7 +143,6 @@ export type TalkKeys =
   | 'sendMessage'
   | 'changeSpeaker'
   | 'deleteMessage'
-  | 'report'
   | 'block'
   | 'unblock'
   | 'listInbox'
@@ -139,6 +150,9 @@ export type TalkKeys =
   | 'getPersona'
   | 'getLastSpeaker'
   | 'setLastSpeaker';
+
+/** 운영 쪽 호출 이름. 신고 받기(report)도 운영 가짜 서버가 맡는다. */
+export type AdminKeys = 'report' | 'listReports' | 'getReport' | 'actOnReport' | 'listModLog' | 'listSanctions' | 'liftSanction';
 
 /** 하루 한 바퀴 쪽 호출 이름. */
 export type DayKeys =
