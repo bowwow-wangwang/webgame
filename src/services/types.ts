@@ -20,6 +20,7 @@ import type {
   InboxItem,
   Message,
   Persona,
+  ReportPart,
   ReportReason,
   Room,
   Character,
@@ -110,7 +111,7 @@ export interface GameService {
   /** 보낸 직후(2분) 다른 캐릭터로 잘못 보낸 말을 바로잡는다. */
   changeSpeaker(messageId: string, speakerId: string): Promise<Result<Message>>;
   deleteMessage(messageId: string): Promise<Result<void>>;
-  report(input: { messageId?: string; personaId: string; reason: ReportReason; memo: string }): Promise<Result<void>>;
+  report(input: { messageId?: string; part?: ReportPart; personaId: string; reason: ReportReason; memo: string }): Promise<Result<void>>;
   block(personaId: string): Promise<Result<void>>;
   unblock(personaId: string): Promise<Result<void>>;
   listInbox(): Promise<InboxItem[]>;

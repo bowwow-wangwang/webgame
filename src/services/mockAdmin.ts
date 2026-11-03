@@ -2,8 +2,10 @@
 // 진짜 서버에서는 reports, moderation_log, sanctions 테이블과 운영자 전용 서버 함수가 맡는다.
 // 함수마다 첫 줄에서 운영자인지 확인한다 (진짜는 admins 테이블로 다시 확인한다).
 import { BALANCE } from '../config/balance';
-import { MOD_ACTION_LABEL, type ModAction, type ModRequest, type Persona, type ReportCase, type ReportReason, type Result, type Sanction } from '../types/domain';
+import { DOSSIER_PART_LABEL, MOD_ACTION_LABEL, type ModAction, type ModRequest, type Persona, type ReportCase, type ReportReason, type Result, type Sanction } from '../types/domain';
 import { mockStore } from './mock';
+import { mockDossier } from './mockDossier';
+import { moderation } from './moderation';
 import { mockOthers, talkModeration } from './mockTalk';
 import type { AdminKeys, GameService } from './types';
 
@@ -11,7 +13,7 @@ const { wait, uid } = mockStore;
 const H = 3600_000;
 const iso = (t: number) => new Date(t).toISOString();
 
-type StoredReport = Omit<ReportCase, 'account' | 'actions'> & { targetId: string; accountId: string };
+type StoredReport = Omit<ReportCase, 'account' | 'actions' | 'imageUrl'> & { targetId: string; accountId: string };
 
 interface AdminStore {
   reports: StoredReport[];
@@ -20,7 +22,7 @@ interface AdminStore {
   seeded: boolean;
 }
 
-const KEY = 'webgame.mock.admin.v1';
+const KEY = 'webgame.mock.admin.v2';
 function load(): AdminStore {
   try {
     const raw = sessionStorage.getItem(KEY);
@@ -84,8 +86,7 @@ function addReport(input: { targetKind: StoredReport['targetKind']; targetId: st
 }
 
 function applyContent(r: StoredReport, to: 'shown' | 'hidden' | 'deleted') {
-  // 테스트 데이터에서 실제로 감추는 것은 대화뿐이다. 판독지 글, 이미지, 문답은 기록만 남는다.
-  if (r.targetKind !== 'message') return;
+  if (r.targetKind !== 'message') return moderation.set(r.targetId, to === 'shown' ? null : to);
   if (to === 'deleted') talkModeration.remove(r.targetId);
   else talkModeration.setHidden(r.targetId, to === 'hidden');
 }
@@ -107,9 +108,9 @@ function seed() {
     addReport({ targetKind: 'message', targetId: msg.id, excerpt: msg.text, where: talkModeration.roomName(msg.roomId), author: other('oA'), reason: 'contact', memo: '[신고 메모]', at: now - 5 * H });
     addReport({ targetKind: 'message', targetId: msg.id, excerpt: msg.text, where: talkModeration.roomName(msg.roomId), author: other('oA'), reason: 'contact', memo: '', at: now - 3 * H });
   }
-  addReport({ targetKind: 'profile', targetId: 'oC-look', excerpt: '[캐릭터 C 판독지의 외형 칸 글]', where: '판독지 외형', author: other('oC'), reason: 'harass', memo: '', at: now - 26 * H });
-  for (const h of [9, 7, 2]) addReport({ targetKind: 'image', targetId: 'oB-img1', excerpt: '[캐릭터 B의 이미지 1]', where: '판독지 사진', author: other('oB'), reason: 'harm', memo: '', at: now - h * H });
-  const done = addReport({ targetKind: 'qna', targetId: 'oE-q1', excerpt: '[캐릭터 E의 문답 답]', where: '문답 "오늘 아침, 가장 먼저 떠오른 것은?"', author: other('oE'), reason: 'other', memo: '', at: now - 50 * H });
+  addReport({ targetKind: 'profile', targetId: 'oC-look', excerpt: '[플레이어가 쓴 외형 설명]', where: '판독지 외형', author: other('oC'), reason: 'harass', memo: '', at: now - 26 * H });
+  for (const h of [9, 7, 2]) addReport({ targetKind: 'image', targetId: 'oB-image', excerpt: '[캐릭터 B]의 판독지 사진', where: '판독지 사진', author: other('oB'), reason: 'harm', memo: '', at: now - h * H });
+  const done = addReport({ targetKind: 'qna', targetId: 'oE-q', excerpt: '[캐릭터의 말로 쓴 답 한 줄]', where: '문답 "[문답 질문]"', author: other('oE'), reason: 'other', memo: '', at: now - 50 * H });
   done.status = 'done';
   log({ kind: 'dismiss', by: '[운영자]', target: targetLine(done), reportId: done.id, memo: '[처리 메모]', until: null, at: now - 48 * H });
   a.seeded = true;
@@ -128,6 +129,7 @@ function view(r: StoredReport): ReportCase {
   const chars = accountChars(r.accountId);
   return {
     ...r,
+    imageUrl: r.targetKind === 'image' ? moderation.originalPortrait(r.author.id) : null,
     account: { id: r.accountId, label: `${chars.map((c) => c.name).join(', ')}의 계정`, characters: chars.length, sanctions: sanctions.length },
     actions: a.log.filter((x) => x.reportId === r.id),
   };
@@ -139,20 +141,30 @@ function activeOf(s: Sanction): Sanction {
 }
 
 export const mockAdmin: Pick<GameService, AdminKeys> = {
-  async report({ messageId, personaId, reason, memo }) {
+  async report({ messageId, part, personaId, reason, memo }) {
     seed();
     const author = mockOthers.find((o) => o.id === personaId);
     if (!author) return wait({ ok: false, message: '신고할 수 없는 대상이에요.' });
-    const msg = messageId ? talkModeration.find(messageId) : null;
-    addReport({
-      targetKind: msg ? 'message' : 'profile',
-      targetId: msg ? msg.id : `${personaId}-profile`,
-      excerpt: msg ? msg.text : `[${author.name}의 판독지]`,
-      where: msg ? talkModeration.roomName(msg.roomId) : '판독지',
-      author,
-      reason,
-      memo,
-    });
+    if (messageId) {
+      const msg = talkModeration.find(messageId);
+      if (!msg) return wait({ ok: false, message: '이미 사라진 말이에요.' });
+      addReport({ targetKind: 'message', targetId: msg.id, excerpt: msg.text, where: talkModeration.roomName(msg.roomId), author, reason, memo });
+    } else {
+      // 판독지에서 고른 칸. 신고된 내용은 서버가 그 자리의 글을 읽어 붙인다 (신고한 사람이 보낸 글을 믿지 않는다).
+      const d = await mockDossier.getDossier(personaId);
+      if (!d || !part) return wait({ ok: false, message: '무엇을 신고하는지 골라 주세요.' });
+      if (part.kind === 'profile') {
+        if (!d[part.field]) return wait({ ok: false, message: '이미 비어 있는 칸이에요.' });
+        addReport({ targetKind: 'profile', targetId: `${personaId}-${part.field}`, excerpt: d[part.field], where: `판독지 ${DOSSIER_PART_LABEL[part.field]}`, author, reason, memo });
+      } else if (part.kind === 'image') {
+        if (!d.persona.portraitUrl) return wait({ ok: false, message: '이미 사진이 없어요.' });
+        addReport({ targetKind: 'image', targetId: `${personaId}-image`, excerpt: `${author.name}의 판독지 사진`, where: '판독지 사진', author, reason, memo });
+      } else {
+        const q = d.qna.find((x) => x.id === part.id);
+        if (!q) return wait({ ok: false, message: '이미 사라진 답이에요.' });
+        addReport({ targetKind: 'qna', targetId: q.id, excerpt: q.answer, where: `문답 "${q.question}"`, author, reason, memo });
+      }
+    }
     save();
     return wait({ ok: true, value: undefined }, 300);
   },

@@ -203,3 +203,9 @@ button, input, select, textarea { font-family: inherit; }
 .app-mod-memos p { margin: 0; font-family: var(--font-body); font-size: 15px; color: var(--reading); overflow-wrap: anywhere; }
 .app-mod-log__memo { font-family: var(--font-body); font-size: 15px; color: var(--reading); overflow-wrap: anywhere; }
 .app-mod-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.app-veiled { font-family: var(--font-mono); font-size: 13px; color: var(--ink-muted); }
+.app-veiled--own { display: block; margin-top: 4px; }
+.app-mod-image { display: block; width: 160px; max-width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border: 1px solid var(--line-strong); }
+.app-dossier-report { display: flex; justify-content: flex-end; padding: 8px 0 0; }
+/* 긴 판(신고 등)은 작은 화면에서도 아래 버튼까지 스크롤해 닿게 한다 */
+.app-sheet .t-dialog { max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; }

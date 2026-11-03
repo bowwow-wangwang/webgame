@@ -7,6 +7,8 @@ import { ago } from '../../lib/time';
 import { api } from '../../services';
 import { Frame, ScreenHeader } from '../../shell/Frame';
 import {
+  DOSSIER_PART_LABEL,
+  REPORT_REASON_LABEL,
   REL_DESC,
   REL_LABEL,
   ROLE_LABEL,
@@ -16,10 +18,12 @@ import {
   type Persona,
   type RelationRequest,
   type RelKind,
+  type ReportPart,
+  type ReportReason,
   type Role,
 } from '../../types/domain';
 import { Face } from '../../ui/chat/Chat';
-import { TextField } from '../../ui/Field';
+import { SelectField, TextArea, TextField } from '../../ui/Field';
 import { Loading } from '../../ui/Loading';
 import { PickGroup } from '../../ui/Pick';
 import { Px } from '../../ui/Px';
@@ -96,6 +100,64 @@ function RelationSheet({ target, onClose, onDone }: { target: Persona; onClose: 
 }
 
 /** M-16 · M-17 판독지 1쪽과 2쪽. 남의 판독지면 아래에 말 걸기와 관계 신청. */
+/** 판독지에서 고를 수 있는 신고 대상. 비어 있거나 이미 가려진 칸은 빼고 보여 준다. */
+function reportParts(d: Dossier): { value: string; title: string; part: ReportPart }[] {
+  const out: { value: string; title: string; part: ReportPart }[] = [];
+  for (const f of ['ability', 'past', 'look', 'personality'] as const)
+    if (d[f] && !d.veiled.includes(f)) out.push({ value: f, title: DOSSIER_PART_LABEL[f], part: { kind: 'profile', field: f } });
+  if (d.persona.portraitUrl) out.push({ value: 'image', title: '사진', part: { kind: 'image' } });
+  for (const q of d.qna) out.push({ value: `q:${q.id}`, title: `문답 답: ${q.question}`, part: { kind: 'qna', id: q.id } });
+  return out;
+}
+
+function DossierReportSheet({ d, onClose, onSent }: { d: Dossier; onClose: () => void; onSent: () => void }) {
+  const toast = useToast();
+  const parts = reportParts(d);
+  const [what, setWhat] = useState<string | null>(parts.length === 1 ? parts[0]!.value : null);
+  const [reason, setReason] = useState<ReportReason | null>(null);
+  const [memo, setMemo] = useState('');
+  const [busy, setBusy] = useState(false);
+  const part = parts.find((p) => p.value === what)?.part;
+  async function send() {
+    if (!part || !reason) return;
+    setBusy(true);
+    const r = await api.report({ part, personaId: d.persona.id, reason, memo });
+    setBusy(false);
+    if (!r.ok) return toast({ kind: 'danger', text: r.message });
+    toast({ kind: 'ok', text: '신고를 받았어요. 운영자가 확인해요.' });
+    onSent();
+  }
+  return (
+    <Sheet title={`${d.persona.name}의 판독지 신고하기`} onClose={onClose} labelId="dossier-report-t" tone="danger">
+      <SelectField
+        label="무엇을 신고하나요"
+        value={what ?? ''}
+        onChange={(v) => setWhat(v || null)}
+        options={[...(parts.length > 1 ? [{ value: '', label: '고르기' }] : []), ...parts.map(({ value, title }) => ({ value, label: title }))]}
+      />
+      <PickGroup<ReportReason>
+        legend="어떤 문제인가요"
+        row
+        value={reason}
+        onChange={setReason}
+        options={(Object.keys(REPORT_REASON_LABEL) as ReportReason[]).map((r) => ({ value: r, title: REPORT_REASON_LABEL[r] }))}
+      />
+      <TextArea label="덧붙일 말" optional="쓰지 않아도 돼요" value={memo} onChange={setMemo} max={200} rows={2} />
+      <p className="t-field__help" style={{ margin: 0 }}>
+        신고한 사람은 상대에게 알려지지 않아요. 운영자가 확인하고, 처리한 내용은 기록으로 남아요.
+      </p>
+      <div className="t-dialog__actions">
+        <button className="t-btn t-btn--outline" type="button" onClick={onClose}>
+          그만두기
+        </button>
+        <button className="t-btn t-btn--danger" type="button" disabled={!part || !reason || busy} onClick={() => void send()}>
+          신고 보내기
+        </button>
+      </div>
+    </Sheet>
+  );
+}
+
 export function DossierScreen({ page }: { page: 1 | 2 }) {
   const { id } = useParams();
   const desktop = useIsDesktop();
@@ -105,6 +167,7 @@ export function DossierScreen({ page }: { page: 1 | 2 }) {
   const [d, setD] = useState<Dossier | null | undefined>(undefined);
   const [acts, setActs] = useState<Activity[]>([]);
   const [relOpen, setRelOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -201,7 +264,15 @@ export function DossierScreen({ page }: { page: 1 | 2 }) {
         ) : (
           <DossierPage2 d={d} items={acts} />
         )}
+        {!own && page === 1 && reportParts(d).length > 0 && (
+          <div className="app-dossier-report">
+            <button type="button" className="t-btn t-btn--ghost" onClick={() => setReportOpen(true)}>
+              이 판독지 신고하기
+            </button>
+          </div>
+        )}
       </Frame>
+      {reportOpen && <DossierReportSheet d={d} onClose={() => setReportOpen(false)} onSent={() => setReportOpen(false)} />}
       {relOpen && (
         <RelationSheet
           target={d.persona}

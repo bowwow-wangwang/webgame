@@ -7,6 +7,7 @@ import {
   type ChoiceLine,
   type DirectoryEntry,
   type Dossier,
+  type DossierPart,
   type MemoryLoss,
   type PreRecord,
   type Persona,
@@ -19,6 +20,7 @@ import {
 import { dateKST } from '../lib/time';
 import { dayRecords } from './mockDay';
 import { mockStore } from './mock';
+import { moderation } from './moderation';
 import type { DossierKeys, GameService } from './types';
 
 const wait = <T,>(v: T, ms = 180) => new Promise<T>((r) => setTimeout(() => r(v), ms));
@@ -44,6 +46,10 @@ const OTHERS: OtherDef[] = [
   { persona: P('oE', '[캐릭터 E]', 'ability', portraitA), origin: '새벽뜰', memoryLoss: 'period', preRecord: { realName: '[본명]', born: '[생년]' }, stats: st([35, 45, 55, 50, 35, 40, 30, 50]), status: '새벽뜰로 다녀오는 중', regNo: 'A-0391' },
   { persona: P('oF', '[캐릭터 F]', 'staff', portraitB), origin: '누에바 에스페란사', memoryLoss: null, stats: st([30, 35, 30, 55, 50, 45, 55, 40]), status: '새벽뜰에서 쉬는 중', regNo: null },
 ];
+moderation.registerPersonas(OTHERS.map((o) => o.persona));
+
+const PARTS: DossierPart[] = ['ability', 'past', 'look', 'personality', 'image'];
+const veiledOf = (id: string) => PARTS.filter((p) => moderation.veil(`${id}-${p}`));
 
 interface Store {
   relations: { id: string; a: string; b: string; kind: RelKind; note: string }[];
@@ -140,12 +146,18 @@ export const mockDossier: Pick<GameService, DossierKeys> = {
         memo: null,
         relations: relationsOf(id),
         createdAt: c.createdAt,
+        // 주인에게는 가려진 칸도 보이고, 가려졌다는 표시만 붙는다. 지운 칸은 비운다.
+        veiled: veiledOf(id),
       };
+      for (const p of d.veiled) if (p !== 'image' && moderation.veil(`${id}-${p}`) === 'deleted') d[p] = '';
       return wait(d);
     }
     const o = OTHERS.find((x) => x.persona.id === id);
     if (!o) return wait(null);
     const hidden = o.stats === null;
+    // 남에게는 운영자가 가린 칸을 비워서 준다.
+    const veiled = veiledOf(id);
+    const text = (p: DossierPart, v: string) => (veiled.includes(p) ? '' : v);
     // 남의 판독지: 주인이 숨긴 줄은 서버가 빼고 준다.
     const lines: ChoiceLine[] = [{ id: `${id}-c1`, date: '10.29', text: '[선택 기록 한 줄]', hidden: false }].filter((l) => !t.choiceHidden[l.id]);
     return wait({
@@ -154,19 +166,20 @@ export const mockDossier: Pick<GameService, DossierKeys> = {
       origin: o.origin ? { id: o.origin, name: o.origin } : null,
       memoryLoss: o.memoryLoss,
       preRecord: o.preRecord ?? {},
-      ability: o.persona.role === 'ability' ? '[능력 한 줄]' : '',
-      past: '[플레이어가 쓴 과거 이야기]',
-      look: '[플레이어가 쓴 외형 설명]',
-      personality: '[플레이어가 쓴 성격]',
+      ability: text('ability', o.persona.role === 'ability' ? '[능력 한 줄]' : ''),
+      past: text('past', '[플레이어가 쓴 과거 이야기]'),
+      look: text('look', '[플레이어가 쓴 외형 설명]'),
+      personality: text('personality', '[플레이어가 쓴 성격]'),
       stats: o.stats,
       statsHidden: hidden,
       status: o.status,
       contamination: o.persona.role === 'ability' ? [22, 41, 18, 30, 55, 24, 36] : null,
       choices: lines,
-      qna: [{ id: `${id}-q`, question: '[문답 질문]', answer: '[캐릭터의 말로 쓴 답 한 줄]' }],
+      qna: [{ id: `${id}-q`, question: '[문답 질문]', answer: '[캐릭터의 말로 쓴 답 한 줄]' }].filter((q) => !moderation.veil(q.id)),
       memo: o.persona.role === 'ability' ? { by: '[재단 직원]', text: '[담당 재단 직원이 쓴 메모]' } : null,
       relations: relationsOf(id),
       createdAt: ago(24 * 30),
+      veiled,
     });
   },
   async setStatsHidden(id, hidden) {
