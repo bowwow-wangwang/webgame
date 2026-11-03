@@ -588,7 +588,7 @@ export interface ReportCase {
 /** 판독지에서 무엇을 신고하는지. */
 export type ReportPart = { kind: 'profile'; field: Exclude<DossierPart, 'image'> } | { kind: 'image' } | { kind: 'qna'; id: string };
 
-export type ModActionKind = 'hide' | 'unhide' | 'delete' | 'dismiss' | 'close' | 'warn' | 'suspend' | 'ban' | 'lift';
+export type ModActionKind = 'hide' | 'unhide' | 'delete' | 'dismiss' | 'close' | 'warn' | 'suspend' | 'ban' | 'lift' | 'config';
 
 export const MOD_ACTION_LABEL: Record<ModActionKind, string> = {
   hide: '숨김',
@@ -600,6 +600,7 @@ export const MOD_ACTION_LABEL: Record<ModActionKind, string> = {
   suspend: '기간 정지',
   ban: '영구 정지',
   lift: '제재 풂',
+  config: '설정 변경',
 };
 
 /** 조치 기록 (moderation_log). 운영자가 방치하지 않았다는 근거가 된다. */

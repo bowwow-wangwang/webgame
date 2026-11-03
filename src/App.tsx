@@ -11,6 +11,7 @@ import { RestIndex, RestScreen, ResultScreen, RunScreen, SendHub } from './scree
 import { HomeScreen } from './screens/Home';
 import { SettingsScreen } from './screens/Settings';
 import { DmScreen, PlaceScreen, TalkScreen } from './screens/talk/TalkScreens';
+import { ConfigScreen } from './screens/admin/ConfigScreen';
 import { ModLogScreen, ReportListScreen, ReportScreen, RequireAdmin, SanctionsScreen } from './screens/admin/AdminScreens';
 import { DirectoryScreen, DossierScreen, RecordScreen } from './screens/dossier/DossierScreens';
 
@@ -78,6 +79,7 @@ const router = createHashRouter([
       { path: '/admin/report/:id', element: <RequireSession><RequireAdmin><ReportScreen /></RequireAdmin></RequireSession> },
       { path: '/admin/sanctions', element: <RequireSession><RequireAdmin><SanctionsScreen /></RequireAdmin></RequireSession> },
       { path: '/admin/log', element: <RequireSession><RequireAdmin><ModLogScreen /></RequireAdmin></RequireSession> },
+      { path: '/admin/config', element: <RequireSession><RequireAdmin><ConfigScreen /></RequireAdmin></RequireSession> },
       { path: '*', element: <Navigate to="/" replace /> },
     ],
   },

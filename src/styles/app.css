@@ -181,10 +181,10 @@ button, input, select, textarea { font-family: inherit; }
 .app-choice .t-btn { flex-shrink: 0; min-width: 64px; }
 
 /* 운영: 신고와 조치 */
-.app-admin-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
-.app-admin-tabs .t-tab { display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 4px 12px; font-size: 14px; text-align: center; text-decoration: none; }
+.app-admin-tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.app-admin-tabs .t-tab { display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 4px 12px; font-size: 14px; white-space: nowrap; text-align: center; text-decoration: none; }
 .app-admin-tabs .t-tab:not([aria-current]) { color: var(--ink); }
-@media (max-width: 479px) { .app-admin-tabs { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 719px) { .app-admin-tabs { grid-template-columns: 1fr 1fr; } .app-admin-tabs .t-tab:last-child:nth-child(odd) { grid-column: 1 / -1; } }
 .app-mod-list, .app-mod-log, .app-mod-reasons { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .app-mod-row, .app-mod-log > li { display: flex; flex-direction: column; gap: 6px; min-height: 44px; padding: 12px; border: 1px solid var(--line-strong); color: var(--ink); text-decoration: none; }
 .app-mod-row:hover { background: var(--surface-raised); }
@@ -209,3 +209,22 @@ button, input, select, textarea { font-family: inherit; }
 .app-dossier-report { display: flex; justify-content: flex-end; padding: 8px 0 0; }
 /* 긴 판(신고 등)은 작은 화면에서도 아래 버튼까지 스크롤해 닿게 한다 */
 .app-sheet .t-dialog { max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; }
+/* 운영: 서버 설정값 */
+.app-cfg { padding-top: 12px; border-top: 1px solid var(--line); }
+.app-cfg__title { margin: 0; font-family: var(--font-pixel); font-size: 16px; color: var(--ink); }
+.app-cfg__list { display: flex; flex-direction: column; gap: 16px; }
+.app-cfg__row { display: flex; flex-direction: column; gap: 6px; }
+.app-cfg__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 8px; }
+.app-cfg__label { font-family: var(--font-body); font-size: 15px; font-weight: 700; color: var(--reading); }
+.app-cfg__def { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.app-cfg__input { display: flex; flex-direction: column; gap: 6px; }
+.app-cfg__one { display: flex; align-items: center; gap: 8px; max-width: 320px; }
+.app-cfg__one .t-input { flex: 1; min-width: 0; }
+.app-cfg__unit { font-family: var(--font-mono); font-size: 14px; color: var(--ink-muted); white-space: nowrap; }
+.app-cfg__parts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; max-width: 420px; margin: 0; padding: 0; border: 0; }
+.app-cfg__part { display: flex; flex-direction: column; gap: 4px; font-family: var(--font-mono); font-size: 13px; color: var(--ink-muted); }
+.app-cfg__part .t-input { min-width: 0; }
+.app-cfg__diff { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.app-cfg__diff li { display: flex; flex-direction: column; gap: 2px; font-size: 15px; color: var(--reading); }
+.app-cfg__diff span { font-family: var(--font-mono); font-size: 14px; color: var(--ink); overflow-wrap: anywhere; }
+@media (min-width: 720px) { .app-admin-tabs .t-tab { padding: 4px 10px; font-size: 13px; } }

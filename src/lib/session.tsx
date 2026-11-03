@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { applyConfig } from '../config/worldConfig';
 import { api } from '../services';
 import type { Character, Session } from '../types/domain';
 
@@ -15,6 +16,8 @@ const Ctx = createContext<SessionState>({ ready: false, session: null, character
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<Omit<SessionState, 'refresh'>>({ ready: false, session: null, characters: [] });
   const refresh = useCallback(async () => {
+    // 밸런스 수치는 서버가 정한다. 화면의 미리 보기도 같은 값을 쓰게 먼저 받아 둔다.
+    applyConfig(await api.getWorldConfig());
     const session = await api.getSession();
     const characters = session ? await api.listMyCharacters() : [];
     setState({ ready: true, session, characters });

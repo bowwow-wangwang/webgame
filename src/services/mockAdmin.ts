@@ -2,6 +2,7 @@
 // 진짜 서버에서는 reports, moderation_log, sanctions 테이블과 운영자 전용 서버 함수가 맡는다.
 // 함수마다 첫 줄에서 운영자인지 확인한다 (진짜는 admins 테이블로 다시 확인한다).
 import { BALANCE } from '../config/balance';
+import { CONFIG_GROUPS, DEFAULT_CONFIG, applyConfig, checkGroup, diffGroup, getAt, setAt, worldConfig, type WorldConfig } from '../config/worldConfig';
 import { DOSSIER_PART_LABEL, MOD_ACTION_LABEL, type ModAction, type ModRequest, type Persona, type ReportCase, type ReportReason, type Result, type Sanction } from '../types/domain';
 import { mockStore } from './mock';
 import { mockDossier } from './mockDossier';
@@ -117,6 +118,20 @@ function seed() {
   save();
 }
 
+// ── 서버 설정값 (world_config) ──
+// 가짜 서버와 화면이 한 창 안에 있어서, 저장하면 바로 applyConfig로 모두가 새 값을 본다.
+const CONFIG_KEY = 'webgame.mock.config.v1';
+function loadConfig(): WorldConfig {
+  try {
+    const raw = sessionStorage.getItem(CONFIG_KEY);
+    if (raw) return { ...DEFAULT_CONFIG, ...(JSON.parse(raw) as WorldConfig) };
+  } catch {
+    // 기본값으로
+  }
+  return DEFAULT_CONFIG;
+}
+applyConfig(loadConfig());
+
 function guard(): string | null {
   const s = mockStore.session();
   if (!s) return '다시 로그인해 주세요.';
@@ -141,6 +156,36 @@ function activeOf(s: Sanction): Sanction {
 }
 
 export const mockAdmin: Pick<GameService, AdminKeys> = {
+  async getWorldConfig() {
+    return wait(worldConfig(), 60);
+  },
+
+  async saveWorldConfig(groupId, cfg) {
+    const denied = guard();
+    if (denied) return wait({ ok: false, message: denied });
+    const group = CONFIG_GROUPS.find((g) => g.id === groupId);
+    if (!group) return wait({ ok: false, message: '없는 설정 묶음이에요.' });
+    // 보낸 값 중 이 묶음의 칸만 받는다. 나머지는 지금 값 그대로.
+    const before = worldConfig();
+    let next = before;
+    for (const f of group.fields) next = setAt(next, f.path, getAt(cfg, f.path));
+    const errs = checkGroup(group, next);
+    const first = Object.keys(errs)[0];
+    if (first) return wait({ ok: false, message: `${group.fields.find((f) => f.path === first)?.label}: ${errs[first]}` });
+    const changes = diffGroup(group, before, next);
+    if (!changes.length) return wait({ ok: false, message: '바뀐 값이 없어요.' });
+    applyConfig(next);
+    try {
+      sessionStorage.setItem(CONFIG_KEY, JSON.stringify(next));
+    } catch {
+      // 이번 창에서는 쓸 수 있다
+    }
+    const by = mockStore.session()?.email ?? '[운영자]';
+    for (const c of changes) log({ kind: 'config', by, target: `${group.title}: ${c.label}`, reportId: null, memo: `${c.from} → ${c.to}`, until: null });
+    save();
+    return wait({ ok: true, value: worldConfig() }, 300);
+  },
+
   async report({ messageId, part, personaId, reason, memo }) {
     seed();
     const author = mockOthers.find((o) => o.id === personaId);

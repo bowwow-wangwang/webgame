@@ -1,3 +1,4 @@
+import type { ConfigGroup, WorldConfig } from '../config/worldConfig';
 import type {
   ActiveSend,
   Condition,
@@ -111,6 +112,10 @@ export interface GameService {
   /** 보낸 직후(2분) 다른 캐릭터로 잘못 보낸 말을 바로잡는다. */
   changeSpeaker(messageId: string, speakerId: string): Promise<Result<Message>>;
   deleteMessage(messageId: string): Promise<Result<void>>;
+  /** 서버 설정값. 누구나 받는다 (화면이 미리 보여 줄 때 쓴다). */
+  getWorldConfig(): Promise<WorldConfig>;
+  /** 운영자만: 묶음 하나를 저장한다. 그 묶음의 칸만 바뀐다. */
+  saveWorldConfig(groupId: ConfigGroup['id'], cfg: WorldConfig): Promise<Result<WorldConfig>>;
   report(input: { messageId?: string; part?: ReportPart; personaId: string; reason: ReportReason; memo: string }): Promise<Result<void>>;
   block(personaId: string): Promise<Result<void>>;
   unblock(personaId: string): Promise<Result<void>>;
@@ -153,7 +158,7 @@ export type TalkKeys =
   | 'setLastSpeaker';
 
 /** 운영 쪽 호출 이름. 신고 받기(report)도 운영 가짜 서버가 맡는다. */
-export type AdminKeys = 'report' | 'listReports' | 'getReport' | 'actOnReport' | 'listModLog' | 'listSanctions' | 'liftSanction';
+export type AdminKeys = 'getWorldConfig' | 'saveWorldConfig' | 'report' | 'listReports' | 'getReport' | 'actOnReport' | 'listModLog' | 'listSanctions' | 'liftSanction';
 
 /** 하루 한 바퀴 쪽 호출 이름. */
 export type DayKeys =
